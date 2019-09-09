@@ -44,3 +44,10 @@ export function getAllApiBaseInfo() {
     method: 'get',
   })
 }
+export function getAdminApiBaseInfo(query) {
+  return request({
+    url: '/api/apiBaseInfo/getAdminApiBaseInfo',
+    method: 'get',
+    params: query
+  })
+}

@@ -17,11 +17,12 @@ const messages = {
     ...zhLocale,
     ...elementZhLocale
   }
-}
+};
 
 const i18n = new VueI18n({
-  locale: Cookies.get('language') || 'en', // set locale
+  locale: Cookies.get('language') || 'zh', // 中文模式
+  // locale: Cookies.get('language') || 'cn', 英文模式
   messages // set locale messages
-})
+});
 
 export default i18n

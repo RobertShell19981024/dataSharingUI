@@ -50,7 +50,7 @@ export default {
       listLoading: true,
       listQuery: {
         page: 1,
-        limit: 20,
+        limit: 10,
         name: undefined
       },
       tableKey: 0,
@@ -105,7 +105,7 @@ export default {
           duration: 2000
         });
       }else{this.$emit('closeUserDialog', this.selects);}
-      
+
     },
     clear() {
       this.selects = []

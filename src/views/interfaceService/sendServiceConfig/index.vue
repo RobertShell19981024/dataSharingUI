@@ -66,7 +66,7 @@
             <!-- 基础信息部分 -->
             <el-collapse-item title="API基础信息" name="1">
               <el-form-item label="api名称" prop="apiName">
-                <el-input v-model="form.apiName" placeholder="请输入API名称"></el-input>
+                <el-input v-model="form.apiName" placeholder="请输入接口名称"></el-input>
               </el-form-item>
               <el-row :gutter="2">
                 <el-col :span="16">
@@ -228,7 +228,7 @@
           // base_url 正则，匹配http或https开头,host为IP:端口或域名:端口,不允许携带任何后缀
           let base_url_reg = new RegExp('^((https|http)?://)(([0-9]{1,3}.){3}[0-9]{1,3})(:[0-9]{1,5})(?!.)|([0-9a-z_!~*\'()-]+.)*([0-9a-z][0-9a-z-]{0,61})?[0-9a-z].[a-z]{2,6}(:[0-9]{1,5})?(?!.)$');
           if (value === '' || value === undefined) {
-            callback(new Error('请输入baseURL'));
+            callback(new Error('请输入IP访问地址'));
           } else if (!base_url_reg.test(value)) {
             callback(new Error('baseURL格式错误，请检查格式(例:http://10.10.10.10:8080)'));
           } else {
@@ -240,7 +240,7 @@
           // path正则表达式,匹配/xxx一次或多次,不能以字符/结尾
           let path_reg = new RegExp('\/.+');
           if (value === '' || value === undefined) {
-            callback(new Error('请输入path'));
+            callback(new Error('请输入后缀地址'));
           } else if (!path_reg.test(value)) {
             callback(new Error('path格式错误，请检查格式(例:/getInfo/getId)'));
           } else {
@@ -301,7 +301,7 @@
             apiName: [
               {
                 required: true,
-                message: '请输入api名称',
+                message: '请输入接口名称',
                 trigger: 'blur'
               },
               {
@@ -347,7 +347,7 @@
           listLoading: true,
           listQuery: {
             page: 1,
-            limit: 20,
+            limit: 10,
             apiName: undefined
           },
           dialogFormVisible: false,

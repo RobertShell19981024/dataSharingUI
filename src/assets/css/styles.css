@@ -1,0 +1,10 @@
+body {
+  font-family: Georgia, sans-serif;
+  padding: 40px;
+}
+
+div#container {
+  margin: auto;
+  width: 780px;
+}
+

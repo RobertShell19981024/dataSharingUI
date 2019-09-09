@@ -75,7 +75,7 @@
         listLoading: true,
         listQuery: {
           page: 1,
-          limit: 20,
+          limit: 10,
           startTime: undefined,
           endTime: undefined
         },

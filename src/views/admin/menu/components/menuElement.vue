@@ -54,7 +54,7 @@
             {{scope.row.description}}</span>
         </template>
       </el-table-column>
-      
+
     </el-table>
     <div v-show="!listLoading" class="pagination-container">
       <el-pagination @size-change="handleSizeChange" @current-change="handleCurrentChange" :current-page.sync="listQuery.page"
@@ -196,7 +196,7 @@ export default {
       listLoading: true,
       listQuery: {
         page: 1,
-        limit: 20,
+        limit: 10,
         name: undefined,
         menuId: this.menuId
       },

@@ -10,7 +10,7 @@ export function page(query) {
 
 export function addObj(obj) {
   return request({
-    url: '/api/user/addUser',
+    url: '/api/user',
     method: 'post',
     data: obj
   })

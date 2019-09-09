@@ -79,12 +79,12 @@ const user = {
             Message({
               message: '账户或密码错误！',
               type: 'warning'
-            })
+            });
             return Promise.reject('error')
           } else {
             console.log(response.data.data)
             const token = response.data;
-            setToken(token)
+            setToken(token);
             commit('SET_TOKEN', token);
             resolve()
           }

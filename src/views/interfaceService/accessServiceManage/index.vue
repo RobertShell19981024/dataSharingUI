@@ -93,7 +93,7 @@
   } from '@/api/interfaceService/accessServiceManage/index';
   import { mapGetters } from 'vuex';
   export default {
-    
+
     data() {
       return {
         list: null,
@@ -101,7 +101,7 @@
         listLoading: true,
         listQuery: {
           page: 1,
-          limit: 20,
+          limit: 10,
           apiName: undefined
         },
         api_info_form: { // api信息表单数据

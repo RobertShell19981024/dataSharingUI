@@ -37,3 +37,18 @@ export function putObj(id, obj) {
     data: obj
   })
 }
+
+export function getOneApiRouterDefineInfo(id) {
+  return request({
+    url: '/api/apiRouterDefine/getOneApiRouterDefineInfo/' + id,
+    method: 'get',
+  })
+}
+
+export function updateApiRouterInfo(id, obj) {
+  return request({
+    url: '/api/apiRouterDefine/updateApiRouterInfo/' + id,
+    method: 'put',
+    data: obj
+  })
+}

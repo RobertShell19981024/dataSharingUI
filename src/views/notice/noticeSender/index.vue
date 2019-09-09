@@ -24,7 +24,7 @@
         :page-sizes="[10,20,30, 50]" :page-size="listQuery.limit" layout="total, sizes, prev, pager, next, jumper" :total="total">
       </el-pagination>
     </div>
-    
+
   </div>
 </template>
 
@@ -34,7 +34,7 @@
   } from '@/api/notice/noticeSender/index';
   import { mapGetters } from 'vuex';
   export default {
-    
+
     data() {
       return {
         list: null,
@@ -42,7 +42,7 @@
         listLoading: true,
         listQuery: {
           page: 1,
-          limit: 20,
+          limit: 10,
           name: undefined
         },
         dialogStatus: '',
@@ -79,13 +79,13 @@
         this.listQuery.page = val;
         this.getList();
       },
-     
+
       cancel(formName) {
         this.dialogFormVisible = false;
         const set = this.$refs;
         set[formName].resetFields();
       }
-   
+
     }
   }
 </script>

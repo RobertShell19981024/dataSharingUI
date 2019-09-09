@@ -339,101 +339,17 @@ export const asyncRouterMap = [{
     name: '访问接口管理',
     authority: 'visitInterfaceManage'
   }, {
-    path: 'myInterfaceManage',
-    component: _import('interface/myInterfaceManage/index'),
+    path: 'myPublicInterface',
+    component: _import('interface/myPublicInterface/index'),
     name: '我的接口管理',
-    authority: 'myInterfaceManage'
+    authority: 'myPublicInterface'
   }, {
     path: 'interfaceMonitor',
     component: _import('interface/interfaceMonitor/index'),
     name: '接口监控',
     authority: 'interfaceMonitor'
   }]
-}, {
-  path: '/myPublishManager',
-  component: Layout,
-  name: '我的发布',
-  icon: 'setting',
-  authority: 'myPublishManager',
-  children: [{
-    path: 'routingManage',
-    component: _import('myPublish/routingManage/index'),
-    name: '路由配置',
-    authority: 'routingManage'
-  }, {
-    path: 'filterManage',
-    component: _import('myPublish/filterManage/index'),
-    name: '过滤器配置',
-    authority: 'filterManage'
-  }, {
-    path: 'myInterfaceManage',
-    component: _import('myPublish/myInterfaceManage/index'),
-    name: '我的接口管理',
-    authority: 'myInterfaceManage'
-  }, {
-    path: 'addApiManage',
-    component: _import('myPublish/addApiManage/index'),
-    name: 'API管理',
-    authority: 'addApiManage',
-  }, {
-    path: 'routingRulesManage',
-    component: _import('myPublish/routingRulesManage/index'),
-    name: '过滤器规则',
-    authority: 'routingRulesManage'
-  }]
-}, {
-  path: '/myRequestManager',
-  component: Layout,
-  name: '我的请求管理',
-  icon: 'setting',
-  authority: 'myRequestManager',
-  children: [
-    {
-    path: 'requestInitialConfig',
-    component: _import('myRequest/requestInitialConfig/index'),
-    name: '请求发起配置',
-    authority: 'requestInitialConfig'
-  },
-    {
-      path: 'requestInterfaceManage',
-      component: _import('myRequest/requestInterfaceManage/index'),
-      name: '路由配置',
-      authority: 'requestInterfaceManage'
-    }]
 },
-  {
-    path: '/systemPublicResManager',
-    component: Layout,
-    name: '系统公共资源',
-    icon: 'setting',
-    authority: 'systemPublicResManager',
-    children: [{
-      path: 'FTPManage',
-      component: _import('systemPublicRes/FTPManage/index'),
-      name: 'FTP',
-      authority: 'FTPManage'
-    }, {
-      path: 'ConfigManage',
-      component: _import('systemPublicRes/ConfigManage/index'),
-      name: '公私钥、密钥生成及应用',
-      authority: 'ConfigManage'
-    }, {
-      path: 'explainManage',
-      component: _import('systemPublicRes/explainManage/index'),
-      name: '公私钥、密钥生成及应用',
-      authority: 'explainManage'
-    }, {
-        path: 'myRequestKeyManage',
-        component: _import('systemPublicRes/myRequestKeyManage/index'),
-        name: '我的请求密钥管理',
-        authority: 'myRequestKeyManage'
-      }, {
-        path: 'myPublicKeyManage',
-        component: _import('systemPublicRes/myPublicKeyManage/index'),
-        name: '我的发布密钥管理',
-        authority: 'myPublicKeyManage'
-      }]
-  },
   {
     path: '/myDzManage',
     component: Layout,
@@ -446,5 +362,47 @@ export const asyncRouterMap = [{
       name: '定制配置',
       authority: 'DzConfig'
     }]
+  },
+  {
+    path: '/myInterface',
+    component: Layout,
+    name: '我的接口',
+    icon: 'setting',
+    authority: 'myInterface',
+    children: [{
+      path: 'myPublicInterface',
+      component: _import('myInterface/myPublicInterface/index'),
+      name: '我的发布接口',
+      authority: 'myPublicInterface'
+    },
+      {
+        path: 'myDzInterface',
+        component: _import('myInterface/myDzInterface/index'),
+        name: '我的定制接口',
+        authority: 'myDzInterface'
+      },
+      {
+        path: 'myRequestInterface',
+        component: _import('myInterface/myRequestInterface/index'),
+        name: '我的请求接口',
+        authority: 'myRequestInterface'
+      }]
+  }, {
+    path: '/interfaceManage',
+    component: Layout,
+    name: '接口管理',
+    icon: 'setting',
+    authority: 'interfaceManage',
+    children: [{
+      path: 'publicInterfaceManage',
+      component: _import('interfaceManage/publicInterfaceManage/index'),
+      name: '发布接口管理',
+      authority: 'publicInterfaceManage'
+    },{
+      path: 'requestInterfaceManage',
+      component: _import('interfaceManage/requestInterfaceManage/index'),
+      name: '请求接口管理',
+      authority: 'requestInterfaceManage'
+    }]
   }
-]
+];

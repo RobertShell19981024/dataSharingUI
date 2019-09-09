@@ -52,7 +52,7 @@
             </el-pagination>
         </div>
 
-        
+
     </div>
 </template>
 
@@ -67,7 +67,7 @@
                 listLoading: true,
                 listQuery: {
                     page: 1,
-                    limit: 20,
+                    limit: 10,
                     apiName: undefined
                 },
                 tableKey: 0

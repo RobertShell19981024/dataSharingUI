@@ -38,5 +38,12 @@ export function putObj(id, obj) {
   })
 }
 
+export function getAdminAllApiJgtoPtInfo(query) {
+  return request({
+    url: '/api/apiJgtoptFilter/getAdminAllApiJgtoPtInfo',
+    method: 'get',
+    params: query
+  })
+}
 
 
