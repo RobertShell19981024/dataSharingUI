@@ -184,13 +184,13 @@
       </div>
     </el-dialog>
 
-    <el-dialog title="密钥信息展示" :visible.sync="keyVisible">
+    <el-dialog title="密钥信息展示" :visible.sync="keyVisible" @close="closeKeyDialog">
       <el-collapse v-model="activeNames">
         <!-- 基础信息部分 -->
         <el-collapse-item title="密钥基础信息" name="1">
           <el-table :data="keyList" v-loading.body="false" border fit highlight-current-row
                     style="width: 100%">
-            <el-table-column width="300px" align="center" label="接口Id">
+            <el-table-column width="119" align="center" label="接口Id">
               <template slot-scope="scope">
                 <span>{{scope.row.apiId}}</span>
               </template>
@@ -213,7 +213,9 @@
                     {{scope.row.signPtPubkey}}<br/>
                     <el-button type="primary" v-clipboard:copy="scope.row.signPtPubkey"
                                v-clipboard:success="onCopy"
-                               v-clipboard:error="onError">复制
+                               v-clipboard:error="onError"
+                               size="medium"
+                    >复制
                     </el-button>
                   </div>
                 </el-popover>
@@ -1392,6 +1394,11 @@
           this.jsonFilterList = result.apiJsonFilterInfoList;
         }
       });
-    }
+    },
+    closeKeyDialog() {
+      this.keyList = [];
+      this.keyArr = [];
+      this.keyVisible = false;
+    },
   }
 </script>

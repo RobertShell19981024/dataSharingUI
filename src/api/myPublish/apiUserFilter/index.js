@@ -16,7 +16,7 @@ export function addObj1(obj) {
   })
 }
 
-export function getObj1(id) {
+export function getOneApiUserFilter(id) {
   return request({
     url: '/api/apiUserFilter/getOneApiUserFilter/' + id,
     method: 'get'

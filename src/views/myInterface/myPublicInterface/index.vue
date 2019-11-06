@@ -1,26 +1,35 @@
 <template>
   <div class="app-container calendar-list-container">
     <div class="filter-container">
+      <el-input @keyup.enter.native="handleFilter" style="width: 200px;" class="filter-item" placeholder="请输入接口名称"
+                v-model="listQuery.apiName">
+      </el-input>
+      <el-button class="filter-item" type="primary" icon="search" @click="handleFilter">搜索</el-button>
       <el-button class="filter-item" v-if="true" style="margin-left: 10px;"
                  @click="handleCreate" type="primary"
                  icon="edit">添加
       </el-button>
     </div>
     <el-table :key='tableKey' :data="list" v-loading.body="false" border fit highlight-current-row
-              style="width: 100%">
-      <el-table-column type="index" align="center" width="93" label="序号">
+              style="width: 100%" v-loading="!listLoading">
+      <el-table-column prop="index" align="center" width="93" label="序号">
       </el-table-column>
-      <el-table-column width="300px" align="center" label="接口名称">
+      <el-table-column align="center" label="接口ID">
+        <template slot-scope="scope">
+          <span>{{scope.row.apiId}}</span>
+        </template>
+      </el-table-column>
+      <el-table-column width="200px" align="center" label="接口名称">
         <template slot-scope="scope">
           <span>{{scope.row.apiName}}</span>
         </template>
       </el-table-column>
-      <el-table-column width="200px" align="center" label="路径">
+      <el-table-column width="200px" align="center" label="访问地址">
         <template slot-scope="scope">
           <span>{{scope.row.baseUrl}}</span>
         </template>
       </el-table-column>
-      <el-table-column width="200px" align="center" label="访问地址">
+      <el-table-column width="200px" align="center" label="后缀地址">
         <template slot-scope="scope">
           <span>{{scope.row.path}}</span>
         </template>
@@ -30,9 +39,9 @@
           <span>{{scope.row.method}}</span>
         </template>
       </el-table-column>
-      <el-table-column align="center" label="定制状态">
+      <el-table-column align="center" label="接口类型">
         <template slot-scope="scope">
-          <span>{{scope.row.isDz == true ? '定制':'未定制'}}</span>
+          <span>{{scope.row.isDz == true ? '定制':'非定制'}}</span>
         </template>
       </el-table-column>
       <el-table-column align="center" label="负责人">
@@ -54,7 +63,7 @@
         </template>
       </el-table-column>
     </el-table>
-    <div v-show="!listLoading" class="pagination-container">
+    <div v-show="listLoading" class="pagination-container">
       <el-pagination @size-change="handleSizeChange" @current-change="handleCurrentChange"
                      :current-page.sync="listQuery.page"
                      :page-sizes="[10,20,30,50]" :page-size="listQuery.limit"
@@ -64,7 +73,7 @@
     <!-- 编辑详细信息 -->
     <el-dialog :title="dialogTitle" :visible.sync="dialogFormVisible" :close-on-click-modal="false"
                @close='closeDialog'>
-      <el-form :model="form" label-width="100px" :rules="ApiRules">
+      <el-form :model="form" label-width="100px" :rules="rules" ref="form">
         <el-collapse v-model="activeNames">
           <!-- 基础信息部分 -->
           <el-collapse-item title="请求接口基础信息" name="1">
@@ -108,12 +117,12 @@
               </el-col>
             </el-row>
           </el-collapse-item>
-          <el-collapse-item title="请求接口过滤器配置" name="1">
+          <el-collapse-item title="请求接口过滤器配置" name="2">
             <el-row :gutter="20">
               <el-col :span="11">
                 <el-table
                   ref="filterTable"
-                  v-loading="listLoading"
+                  v-loading="!listLoading"
                   :key="tableKey"
                   :data="filterList"
                   border
@@ -122,15 +131,24 @@
                   @selection-change="handleFilterChange"
                 >
                   <el-table-column type="selection" :reserve-selection="true" width="55"></el-table-column>
-                  <el-table-column label="主键" align="center">
-                    <template slot-scope="scope">
-                      <span>{{ scope.row.key }}</span>
-                    </template>
-                  </el-table-column>
+                  <!--<el-table-column label="主键" align="center">-->
+                  <!--<template slot-scope="scope">-->
+                  <!--<span>{{ scope.row.key }}</span>-->
+                  <!--</template>-->
+                  <!--</el-table-column>-->
 
                   <el-table-column label="过滤器名称" align="center">
                     <template slot-scope="scope">
-                      <span>{{ scope.row.label }}</span>
+                      <el-popover
+                        placement="left"
+                        width="160"
+                        trigger="hover"
+                      ><span style="font-size: 16px;font-weight: 500;margin-left: 30px">过滤器说明</span>
+                        <span slot="reference" @mouseover="filterExplain(scope.row.key)">{{ scope.row.label }}</span>
+                        <div style="height: 100px;overflow: auto">
+                          {{filterExplainDes}}<br/>
+                        </div>
+                      </el-popover>
                     </template>
                   </el-table-column>
                 </el-table>
@@ -157,7 +175,7 @@
               <el-col :span="11">
                 <el-table
                   ref="selectedFilterTable"
-                  v-loading="listLoading"
+                  v-loading="!listLoading"
                   :key="tableKey"
                   :data="selectedFilterList"
                   border
@@ -166,11 +184,11 @@
                   @selection-change="handleSelectedFilterChange"
                 >
                   <el-table-column type="selection" :reserve-selection="true" width="55"></el-table-column>
-                  <el-table-column label="主键" align="center">
-                    <template slot-scope="scope">
-                      <span>{{ scope.row.key }}</span>
-                    </template>
-                  </el-table-column>
+                  <!--<el-table-column label="主键" align="center">-->
+                  <!--<template slot-scope="scope">-->
+                  <!--<span>{{ scope.row.key }}</span>-->
+                  <!--</template>-->
+                  <!--</el-table-column>-->
 
                   <el-table-column label="过滤器名称" align="center">
                     <template slot-scope="scope">
@@ -188,7 +206,7 @@
                       <el-button v-else type="primary" size="small"
                                  v-show="showIdArrs.indexOf(scope.row.key) > -1" @click="isShowButton(scope.row.key)"
                       >
-                        修改
+                        设置
                       </el-button>
                     </template>
                   </el-table-column>
@@ -202,73 +220,68 @@
       <div slot="footer" class="dialog-footer">
         <el-button @click="cancel('form')">取 消</el-button>
         <el-button v-if="dialogStatus=='create'" type="primary" @click="create('form')">确 定</el-button>
-        <el-button v-else type="primary" @click="update('form')">确 定</el-button>
+        <el-button v-else type="primary" @click="update('form')">修 改</el-button>
       </div>
     </el-dialog>
 
-    <el-dialog title="密钥信息展示" :visible.sync="keyVisible">
-      <el-collapse v-model="activeNames">
-        <!-- 基础信息部分 -->
-        <el-collapse-item title="密钥基础信息" name="1">
-          <el-table :data="keyList" v-loading.body="false" border fit highlight-current-row
-                    style="width: 100%">
-            <el-table-column width="150px" align="center" label="接口Id">
-              <template slot-scope="scope">
-                <span>{{scope.row.apiId}}</span>
-              </template>
-            </el-table-column>
-            <el-table-column width="200px" align="center" label="接口名称">
-              <template slot-scope="scope">
-                <span>{{scope.row.apiName}}</span>
-              </template>
-            </el-table-column>
-            <el-table-column width="200px" align="center" label="平台签名公钥">
-              <template slot-scope="scope">
-                <el-popover
-                  placement="left"
-                  title="平台签名公钥"
-                  width="200"
-                  trigger="hover"
-                >
-                  <span slot="reference">{{scope.row.signPtPubkey.length<=100?scope.row.signPtPubkey:scope.row.signPtPubkey.substring(0,100)+"..."}}</span>
-                  <div style="height: 200px;overflow: auto">
-                    {{scope.row.signPtPubkey}}<br/>
-                    <el-button type="primary" v-clipboard:copy="scope.row.signPtPubkey"
-                               v-clipboard:success="onCopy"
-                               v-clipboard:error="onError">复制
-                    </el-button>
-                  </div>
-                </el-popover>
-              </template>
-            </el-table-column>
-            <el-table-column width="200px" align="center" label="签名私钥">
-              <template slot-scope="scope">
-                <el-popover
-                  placement="left"
-                  title="签名私钥"
-                  width="200"
-                  trigger="hover"
-                >
-                  <span slot="reference">{{scope.row.signSecretKey.length<=100?scope.row.signSecretKey:scope.row.signSecretKey.substring(0,100)+"..."}}</span>
-                  <div style="height: 200px;overflow: auto">
-                  {{scope.row.signSecretKey}}<br/>
-                  <el-button type="primary" v-clipboard:copy="scope.row.signSecretKey"
-                             v-clipboard:success="onCopy"
-                             v-clipboard:error="onError">复制
-                  </el-button>
-                  </div>
-                </el-popover>
-              </template>
-            </el-table-column>
-            <el-table-column width="200px" align="center" label="数据密钥">
-              <template slot-scope="scope">
-                <span>{{scope.row.symmetricPubkey}}</span>
-              </template>
-            </el-table-column>
+    <el-dialog title="密钥信息展示" :visible.sync="keyVisible" @close="closeKeyDialog">
+      <!-- 基础信息部分 -->
+      <el-table :data="keyList" v-loading.body="false" border fit highlight-current-row
+                style="width: 100%">
+        <el-table-column width="119" align="center" label="接口Id">
+          <template slot-scope="scope">
+            <span>{{scope.row.apiId}}</span>
+          </template>
+        </el-table-column>
+        <el-table-column width="200px" align="center" label="接口名称">
+          <template slot-scope="scope">
+            <span>{{scope.row.apiName}}</span>
+          </template>
+        </el-table-column>
+        <el-table-column width="200px" align="center" label="平台签名公钥">
+          <template slot-scope="scope">
+            <el-popover
+              placement="left"
+              width="200"
+              trigger="hover"
+            >
+              <span style="font-size: 16px;font-weight: 500">签名公钥</span>
+              <el-button type="primary" v-clipboard:copy="scope.row.signPtPubkey"
+                         v-clipboard:success="onCopy"
+                         v-clipboard:error="onError" size="mini" style="margin-left: 30px">复制
+              </el-button>
+              <span slot="reference" v-if="scope.row.signPtPubkey!=undefined">{{scope.row.signPtPubkey.length<=100?scope.row.signPtPubkey:scope.row.signPtPubkey.substring(0,100)+"..."}}</span>
+              <div style="height: 200px;overflow: auto">
+                {{scope.row.signPtPubkey}}<br/>
+              </div>
+            </el-popover>
+          </template>
+        </el-table-column>
+        <el-table-column width="200px" align="center" label="签名私钥">
+          <template slot-scope="scope">
+            <el-popover
+              placement="left"
+              width="200"
+              trigger="hover"
+            ><span style="font-size: 16px;font-weight: 500">签名私钥</span>
+              <el-button type="primary" v-clipboard:copy="scope.row.signSecretKey"
+                         v-clipboard:success="onCopy"
+                         v-clipboard:error="onError" size="mini" style="margin-left: 30px">复制
+              </el-button>
+              <span slot="reference" v-if="scope.row.signSecretKey!=undefined">{{scope.row.signSecretKey.length<=100?scope.row.signSecretKey:scope.row.signSecretKey.substring(0,100)+"..."}}</span>
+              <div style="height: 200px;overflow: auto">
+                {{scope.row.signSecretKey}}<br/>
+              </div>
+            </el-popover>
+          </template>
+        </el-table-column>
+        <el-table-column width="200px" align="center" label="数据密钥">
+          <template slot-scope="scope">
+            <span>{{scope.row.symmetricPubkey}}</span>
+          </template>
+        </el-table-column>
 
-          </el-table>
-        </el-collapse-item>
-      </el-collapse>
+      </el-table>
       <div slot="footer" class="dialog-footer">
         <el-button @click="keyCancel('form')">取 消</el-button>
       </div>
@@ -371,10 +384,7 @@
             <span>{{scope.row.limitValue}}</span>
           </template>
         </el-table-column>
-        <el-table-column align="center" label="限流类型">
-          <template slot-scope="scope">
-            <span>{{scope.row.limitType}}</span>
-          </template>
+        <el-table-column align="center" label="限流类型" prop="limitType" :formatter="formatLimitType">
         </el-table-column>
         <el-table-column align="center" label="限流次数">
           <template slot-scope="scope">
@@ -396,8 +406,45 @@
         </el-table-column>
       </el-table>
     </el-dialog>
+    <el-dialog title="" :visible.sync="sqCityApiConfigVisible">
+      <h3>宿迁市本级接口过滤<i class="el-icon-circle-plus-outline" style="margin-left: 100px;font-size: 30px"
+                      @click="handleSqCityConfigCreate"></i></h3>
+      <el-table :key='tableKey' :data="sqCityConfigList" v-loading.body="false" border fit highlight-current-row
+                style="width: 100%">
+        <el-table-column type="index" align="center" width="93" label="序号">
+        </el-table-column>
+        <el-table-column align="center" label="ak">
+          <template slot-scope="scope">
+            <span>{{scope.row.ak}}</span>
+          </template>
+        </el-table-column>
+        <el-table-column align="center" label="appId">
+          <template slot-scope="scope">
+            <span>{{scope.row.appId}}</span>
+          </template>
+        </el-table-column>
+        <el-table-column align="center" label="serviceId">
+          <template slot-scope="scope">
+            <span>{{scope.row.serviceId}}</span>
+          </template>
+        </el-table-column>
+        <el-table-column align="center" label="sk">
+          <template slot-scope="scope">
+            <span>{{scope.row.sk}}</span>
+          </template>
+        </el-table-column>
+        <el-table-column fixed="right" align="center" label="操作" width="325">
+          <template slot-scope="scope">
+            <i class="el-icon-edit-outline" style="margin-left: 25px;font-size: 30px" size="small" type="danger"
+               @click="handleSqCityConfigUpdate(scope)"></i>
+            <i class="el-icon-delete" style="margin-left: 30px;font-size: 30px" size="small" type="danger"
+               @click="handleSqCityConfigDelete(scope)"></i>
+          </template>
+        </el-table-column>
+      </el-table>
+    </el-dialog>
     <!-- 编辑详细信息 -->
-    <el-dialog :title="dialogTimeTitle" :visible.sync="timeIndexVisible">
+    <el-dialog :title="dialogTimeTitle" :visible.sync="timeIndexVisible" width="600px">
       <div class="block">
         <span class="demonstration">时间</span>
         <el-time-picker
@@ -417,135 +464,153 @@
       </div>
     </el-dialog>
 
-    <el-dialog :title="dialogIPTitle" :visible.sync="IPVisible">
-      <el-form :model="IPForm" label-width="100px" :rules="IPRules">
-        <el-collapse v-model="activeNames">
-          <!-- 基础信息部分 -->
-          <el-collapse-item name="1">
-            <el-row>
-              <el-form-item label="允许访问的网站地址" prop="ipContent">
-                <el-input v-model="IPForm.ipContent" placeholder="请输入网站地址" style="width: 50%"></el-input>
-              </el-form-item>
-            </el-row>
-            <el-row>
-              <el-form-item label="地址描述" prop="ipNote">
-                <el-input v-model="IPForm.ipNote" placeholder="请输入网站地址描述" style="width: 50%"></el-input>
-              </el-form-item>
-            </el-row>
-          </el-collapse-item>
-        </el-collapse>
+    <el-dialog :title="dialogIPTitle" :visible.sync="IPVisible" width="600px">
+      <el-form :model="IPForm" label-width="100px" :rules="IPRules" ref="IPForm">
+        <el-row>
+          <el-form-item label="允许访问的网站地址" prop="ipContent">
+            <el-input v-model="IPForm.ipContent" placeholder="请输入网站地址" style="width: 50%"></el-input>
+          </el-form-item>
+        </el-row>
+        <el-row>
+          <el-form-item label="地址描述" prop="ipNote">
+            <el-input v-model="IPForm.ipNote" placeholder="请输入网站地址描述" style="width: 50%"></el-input>
+          </el-form-item>
+        </el-row>
       </el-form>
       <div slot="footer" class="dialog-footer">
         <el-button @click="IPCancel()">取 消</el-button>
-        <el-button v-if="dialogIPStatus=='create'" type="primary" @click="IPCreate()">创建</el-button>
-        <el-button v-else type="primary" @click="IPUpdate()">修改</el-button>
+        <el-button v-if="dialogIPStatus=='create'" type="primary" @click="IPCreate('IPForm')">创建</el-button>
+        <el-button v-else type="primary" @click="IPUpdate('IPForm')">修改</el-button>
       </div>
     </el-dialog>
 
-    <el-dialog :title="dialogJsonFilterTitle" :visible.sync="JsonFilterIndexVisible">
-      <el-form :model="JsonFilterForm" label-width="100px" :rules="JsonFilterRules">
-        <el-collapse v-model="activeNames">
-          <!-- 基础信息部分 -->
-          <el-collapse-item name="1">
-            <el-row>
-              <el-form-item label="指定用户" prop="fromUser">
-                <el-select v-model="JsonFilterForm.fromUser" placeholder="请指定用户">
-                  <el-option
-                    v-for="item in userOptions"
-                    :key="item.value"
-                    :label="item.label"
-                    :value="item.value">
-                  </el-option>
-                </el-select>
-              </el-form-item>
-            </el-row>
-            <el-row>
-              <el-form-item label="过滤key字段" prop="fieldList">
-                <el-input v-model="JsonFilterForm.fieldList" placeholder="请输入过滤key集合" style="width: 50%"></el-input>
-              </el-form-item>
-            </el-row>
-          </el-collapse-item>
-        </el-collapse>
+    <el-dialog :title="dialogJsonFilterTitle" :visible.sync="JsonFilterIndexVisible" width="600px">
+      <el-form :model="JsonFilterForm" label-width="100px" :rules="JsonFilterRules" ref="JsonFilterForm">
+        <el-row>
+          <el-form-item label="指定用户" prop="fromUser">
+            <el-select v-model="JsonFilterForm.fromUser" placeholder="请指定用户">
+              <el-option
+                v-for="item in userOptions"
+                :key="item.value"
+                :label="item.label"
+                :value="item.value">
+              </el-option>
+            </el-select>
+          </el-form-item>
+        </el-row>
+        <el-row>
+          <el-form-item label="过滤key字段" prop="fieldList">
+            <el-input v-model="JsonFilterForm.fieldList" placeholder="请输入过滤key集合" style="width: 50%"></el-input>
+          </el-form-item>
+        </el-row>
       </el-form>
       <div slot="footer" class="dialog-footer">
         <el-button @click="JsonFilterCancel()">取 消</el-button>
-        <el-button v-if="dialogJsonFilterStatus=='create'" type="primary" @click="JsonFilterCreate()">创建</el-button>
-        <el-button v-else type="primary" @click="JsonFilterUpdate()">修改</el-button>
+        <el-button v-if="dialogJsonFilterStatus=='create'" type="primary" @click="JsonFilterCreate('JsonFilterForm')">
+          创建
+        </el-button>
+        <el-button v-else type="primary" @click="JsonFilterUpdate('JsonFilterForm')">修改</el-button>
       </div>
     </el-dialog>
 
     <el-dialog :title="dialogLimitTitle" :visible.sync="currentLimitingIndexVisible">
-      <el-form :model="limitForm" label-width="100px" :rules="limitRules">
-        <el-collapse v-model="activeNames">
-          <!-- 基础信息部分 -->
-          <el-collapse-item title="限流基础信息" name="1">
-            <el-row>
-              <el-col :span="12">
-                <el-form-item label="限流对象" prop="limitObject">
-                  <el-select v-model="limitForm.limitObject" placeholder="请选择限流对象" style="margin-bottom: 10px">
-                    <el-option v-for="item in limitObjectOptions" :key="item.value" :label="item.label"
-                               :value="item.value">
-                    </el-option>
-                  </el-select>
-                </el-form-item>
-              </el-col>
-              <el-col :span="12">
-                <el-form-item label="限流对象值" prop="limitValue">
-                  <el-input v-model="limitForm.limitValue" placeholder="请输入限流对象值"></el-input>
-                </el-form-item>
-              </el-col>
-            </el-row>
-            <el-row>
-              <el-col :span="8">
-                <el-form-item label="限流类型" prop="limitType">
-                  <el-select v-model="limitForm.limitType" placeholder="请选择限流类型" style="margin-bottom: 10px">
-                    <el-option v-for="item in limitTypeOptions" :key="item.value" :label="item.label"
-                               :value="item.value">
-                    </el-option>
-                  </el-select>
-                </el-form-item>
-              </el-col>
-              <el-col :span="8">
-                <el-form-item label="限流次数" prop="limitCount">
-                  <el-input v-model="limitForm.limitCount" placeholder="限流次数"></el-input>
-                </el-form-item>
-              </el-col>
-              <el-col :span="8">
-                <el-form-item label="限流总次数" prop="limitTotalCount">
-                  <el-input v-model="limitForm.limitTotalCount" placeholder="限流总次数"></el-input>
-                </el-form-item>
-              </el-col>
-            </el-row>
-          </el-collapse-item>
-        </el-collapse>
+      <el-form :model="limitForm" label-width="100px" :rules="limitRules" ref="limitForm">
+        <el-row>
+          <el-col :span="12">
+            <el-form-item label="限流对象" prop="limitObject">
+              <el-select v-model="limitForm.limitObject" placeholder="请选择限流对象" style="margin-bottom: 10px">
+                <el-option v-for="item in limitObjectOptions" :key="item.value" :label="item.label"
+                           :value="item.value">
+                </el-option>
+              </el-select>
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="限流对象值" prop="limitValue">
+              <el-input v-model="limitForm.limitValue" placeholder="请输入限流对象值"></el-input>
+            </el-form-item>
+          </el-col>
+        </el-row>
+        <el-row>
+          <el-col :span="8">
+            <el-form-item label="限流类型" prop="limitType">
+              <el-select v-model="limitForm.limitType" placeholder="请选择限流类型" style="margin-bottom: 10px">
+                <el-option v-for="item in limitTypeOptions" :key="item.value" :label="item.label"
+                           :value="item.value">
+                </el-option>
+              </el-select>
+            </el-form-item>
+          </el-col>
+          <el-col :span="8">
+            <el-form-item label="限流次数" prop="limitCount">
+              <el-input v-model="limitForm.limitCount" placeholder="限流次数"></el-input>
+            </el-form-item>
+          </el-col>
+          <el-col :span="8">
+            <el-form-item label="限流总次数" prop="limitTotalCount">
+              <el-input v-model="limitForm.limitTotalCount" placeholder="限流总次数"></el-input>
+            </el-form-item>
+          </el-col>
+        </el-row>
       </el-form>
       <div slot="footer" class="dialog-footer">
         <el-button @click="limitCancel()">取 消</el-button>
-        <el-button v-if="dialogLimitStatus=='create'" type="primary" @click="limitCreate()">创建</el-button>
-        <el-button v-else type="primary" @click="limitUpdate()">修改</el-button>
+        <el-button v-if="dialogLimitStatus=='create'" type="primary" @click="limitCreate('limitForm')">创建</el-button>
+        <el-button v-else type="primary" @click="limitUpdate('limitForm')">修改</el-button>
       </div>
     </el-dialog>
 
+    <el-dialog :title="dialogSqCityConfigTitle" :visible.sync="sqCityApiConfigIndexVisible">
+      <el-form :model="sqApiConfigForm" label-width="100px" :rules="sqCityApiConfigRules" ref="sqForm">
+        <el-row>
+          <el-col :span="12">
+            <el-form-item label="ak" prop="ak">
+              <el-input v-model="sqApiConfigForm.ak" placeholder="请输入ak"></el-input>
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="sk" prop="sk">
+              <el-input v-model="sqApiConfigForm.sk" placeholder="请输入sk"></el-input>
+            </el-form-item>
+          </el-col>
+        </el-row>
+        <el-row>
+          <el-col :span="12">
+            <el-form-item label="serviceId" prop="serviceId">
+              <el-input v-model="sqApiConfigForm.serviceId" placeholder="请输入serviceId"></el-input>
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="appId" prop="appId">
+              <el-input v-model="sqApiConfigForm.appId" placeholder="请输入appId"></el-input>
+            </el-form-item>
+          </el-col>
+        </el-row>
+      </el-form>
+      <div slot="footer" class="dialog-footer">
+        <el-button @click="sqlCityConfigCancel()">取 消</el-button>
+        <el-button v-if="dialogSqCityConfigStatus=='create'" type="primary" @click="sqCityConfigCreate('sqForm')">创建
+        </el-button>
+        <el-button v-else type="primary" @click="sqCityConfigUpdate('sqForm')">修改</el-button>
+      </div>
+    </el-dialog>
 
-    <el-dialog title="路由管理" :visible.sync="routeVisible">
-      <el-form :model="routeForm" ref="form" label-width="100px" :rules="routeRules">
-        <el-collapse v-model="activeNames">
-          <!-- 基础信息部分 -->
-          <el-collapse-item title="路由基础信息" name="1">
-            <el-row>
-              <el-col :span="12">
-                <el-form-item label="访问IP地址" prop="url">
-                  <el-input v-model="routeForm.url" placeholder="请输入IP访问地址"></el-input>
-                </el-form-item>
-              </el-col>
-              <el-col :span="12">
-                <el-form-item label="路由后缀地址" prop="path">
-                  <el-input v-model="routeForm.path" placeholder="后缀地址"></el-input>
-                </el-form-item>
-              </el-col>
-            </el-row>
-          </el-collapse-item>
-        </el-collapse>
+    <el-dialog title="路由管理" :visible.sync="routeVisible" width="500px">
+      <el-form :model="routeForm" ref="form" label-width="120px" :rules="routeRules">
+        <el-row>
+          <el-col :span="12">
+            <el-form-item label="访问IP地址" prop="url">
+              <el-input v-model="routeForm.url" placeholder="请输入IP访问地址" style="width: 250px"></el-input>
+            </el-form-item>
+          </el-col>
+        </el-row>
+        <el-row>
+          <el-col :span="12">
+            <el-form-item label="路由后缀地址" prop="path">
+              <el-input v-model="routeForm.path" placeholder="后缀地址" style="width: 250px"></el-input>
+            </el-form-item>
+          </el-col>
+        </el-row>
       </el-form>
       <div slot="footer" class="dialog-footer">
         <el-button @click="routeCancel()">取 消</el-button>
@@ -610,13 +675,22 @@
     delApiFlowConfigInfo,
     updateApiFlowConfigInfo,
   } from '@/api/myPublish/interfaceCurrentLimiting/index';
-  import BScroll from 'better-scroll'
+
+  import {
+    getOneApiRouterFilter
+  } from '@/api/myPublish/apiRouterFilter/index';
+
+  import {
+    insertApiCitysharedConfigInfo,
+    getOneApiCitysharedConfigInfo,
+    delApiCitysharedConfig,
+    updateApiCitysharedConfig
+  } from '@/api/myPublish/apiCitysharedConfig/index';
 
   export default {
     mounted() {
       this.getList();
       this.allUsers();
-      this._initScroll();
     },
     data() {
       let urlValidate = (rule, value, callback) => {
@@ -637,6 +711,17 @@
           callback(new Error('请输入后缀地址'));
         } else if (!path_reg.test(value)) {
           callback(new Error('path格式错误，请检查格式(例:/getInfo/getId)'));
+        } else {
+          callback();
+        }
+      };
+      let phoneValidate = (rule, value, callback) => {
+        // path正则表达式,匹配/xxx一次或多次,不能以字符/结尾
+        let path_reg = new RegExp('^1[3456789]\\d{9}$');
+        if (value === '' || value === undefined) {
+          callback(new Error('请输入手机号'));
+        } else if (!path_reg.test(value)) {
+          callback(new Error('手机号格式错误'));
         } else {
           callback();
         }
@@ -663,6 +748,13 @@
           limitTotalCount: undefined,
           jiange: 0,
         },
+        sqApiConfigForm: {
+          apiId: undefined,
+          ak: undefined,
+          appId: undefined,
+          serviceId: undefined,
+          sk: undefined
+        },
         list: null,
         keyList: null,
         total: null,
@@ -672,8 +764,8 @@
         keyVisible: false,
         filterData: [],
         filterList: [],
-        selectedFilterList: [],
         selectedFilterData: [],
+        selectedFilterList: [],
         originList: [],
         rowKey: "rowKey",
         methodOptions: [
@@ -719,9 +811,10 @@
         dialogIPTitle: '',
         dialogJsonFilterTitle: '',
         dialogLimitTitle: '',
+        dialogSqCityConfigTitle: '',
         isShow: false,
         api_id: undefined,
-        showIdArrs: ['1h5OiYUc', '1h5OiYUo', '1h5OiYUs', '1h5O7YUs'],
+        showIdArrs: ['1h5OiYUc', '1h5OiYUo', '1h5OiYUs', '1h5O7YUs', '5d5frts4'],
         value2: '00:00:00',
         timeVisible: false,
         timeIndexVisible: false,
@@ -731,19 +824,24 @@
         IPVisible: false,
         currentLimitingVisible: false,
         currentLimitingIndexVisible: false,
+        sqCityApiConfigVisible: false,
+        sqCityApiConfigIndexVisible: false,
         routeVisible: false,
         timeList: null,
         whiteListList: null,
         jsonFilterList: null,
         currentLimitingList: null,
+        sqCityConfigList: null,
         listQuery: {
           page: 1,
           limit: 10,
+          apiName: undefined
         },
         dialogTimeStatus: '',
         dialogIPStatus: '',
         dialogJsonFilterStatus: '',
         dialogLimitStatus: '',
+        dialogSqCityConfigStatus: '',
         tableKey: 0,
         IPForm: {
           ipContent: undefined,
@@ -753,30 +851,20 @@
           fromUser: undefined,
           fieldList: undefined
         },
-        activeNames: ['1'],
-        ApiRules:{
+        activeNames: ['1', '2'],
+        rules: {
           apiName: [
             {
               required: true,
               message: '请输入接口名称',
               trigger: 'blur'
             }
-          ], baseUrl: [
-            {
-              required: true,
-              message: '请输入IP访问地址',
-              trigger: 'blur'
-            },{
-              required: true,
-              trigger: 'blur',
-              validator: urlValidate
-            }
+          ], baseUrl: [{
+            required: true,
+            trigger: 'blur',
+            validator: urlValidate
+          }
           ], path: [
-            {
-              required: true,
-              message: '请输入后缀地址',
-              trigger: 'blur'
-            },
             {
               required: true,
               trigger: 'blur',
@@ -797,18 +885,17 @@
           ], responsiblePersonTel: [
             {
               required: true,
-              message: '请输入负责人电话',
-              trigger: 'blur'
+              trigger: 'blur',
+              validator: phoneValidate
             }
           ]
-
         },
         IPRules: {
           ipContent: [
             {
               required: true,
-              message: '请输入网站地址',
-              trigger: 'blur'
+              trigger: 'blur',
+              validator: urlValidate
             }
           ], ipNote: [
             {
@@ -866,13 +953,40 @@
             }
           ]
         },
+        sqCityApiConfigRules: {
+          ak: [
+            {
+              required: true,
+              message: '请输入ak内容',
+              trigger: 'blur'
+            }
+          ], sk: [
+            {
+              required: true,
+              message: '请输入sk内容',
+              trigger: 'blur'
+            }
+          ], serviceId: [
+            {
+              required: true,
+              message: '请输入serviceId内容',
+              trigger: 'blur'
+            }
+          ], appId: [
+            {
+              required: true,
+              message: '请输入appId内容',
+              trigger: 'blur'
+            }
+          ]
+        },
         routeRules: {
           url: [
             {
               required: true,
               message: '请输入IP访问地址',
               trigger: 'blur'
-            },{
+            }, {
               required: true,
               trigger: 'blur',
               validator: urlValidate
@@ -882,7 +996,7 @@
               required: true,
               message: '后缀地址',
               trigger: 'blur'
-            },{
+            }, {
               required: true,
               trigger: 'blur',
               validator: pathValidate
@@ -928,6 +1042,7 @@
         updateWhiteId: '',
         updateJsonId: '',
         updateLimitId: '',
+        updateSqCityConfigId: '',
         readonly: false,
         filterUserjson: {},
         middle: {},
@@ -938,10 +1053,14 @@
         apiTimeFilters: [],
         apiJsonKeyFilters: [],
         apiFlowConfigs: [],
+        apiSqCityConfigs: [],
         filterConfigStatus: '',
         createUpdateIPId: '',
         createUpdateJsonFilterId: '',
         createUpdateLimitId: '',
+        createUpdateSqCityConfigId: '',
+        filterExplainDes: '',
+        index:0
       }
     },
     methods: {
@@ -994,15 +1113,19 @@
           });
       },
       getList() {
-        this.listLoading = true;
+        this.listLoading = false;
         page(this.listQuery)
           .then(response => {
             const status = response.status;
             if (status === 200) {
               this.list = response.data.rows;
+              this.list.forEach((item,index)=>{
+                item.index = (this.listQuery.page-1)*this.listQuery.limit+index+1
+              });
               this.total = response.data.total;
-              this.listLoading = false;
+              this.listLoading = true;
             } else if (status === 20500) {
+              this.listLoading = false;
               this.$message({
                 message: response.message,
                 type: 'error',
@@ -1028,20 +1151,35 @@
         obj1.apiId = this.api_id;
         obj1.filterUserjson = this.filterUserjson;
         const obj = Object.assign(this.form, obj1);
-        putObj(this.api_id, obj).then(() => {
-          this.getList();
-          this.$notify({
-            title: '成功',
-            message: '修改成功',
-            type: 'success',
-            duration: 2000
-          });
+        putObj(this.api_id, obj).then(response => {
+          const status = response.status;
+          if (status === 20500) {
+            this.$message({
+              message: response.message,
+              type: 'error',
+              duration: 1500
+            })
+          } else {
+            this.resetTemp();
+            this.dialogFormVisible = false;
+            this.getList();
+            this.$notify({
+              title: '成功',
+              message: '修改成功',
+              type: 'success',
+              duration: 2000
+            });
+          }
         });
       },
       cancel() {
         this.dialogFormVisible = false;
         this.updateFilterList = [];
         this.resetTemp();
+        this.resetJsonTemp();
+        this.resetIPTemp();
+        this.resetLimitTemp();
+        this.resetSqCityConfigTemp();
         window.localStorage.clear();
       },
       keyCancel() {
@@ -1087,6 +1225,7 @@
                   type: 'success',
                   duration: 2000
                 });
+                this.getList();
                 const index = this.list.indexOf(row);
                 this.list.splice(index, 1);
               });
@@ -1157,6 +1296,7 @@
         this.apiTimeFilters = [];
         this.apiJsonKeyFilters = [];
         this.apiFlowConfigs = [];
+        this.apiSqCityConfigs = [];
       }
       ,
       // 将左边表格选择项存入filterData中
@@ -1320,9 +1460,16 @@
           } else {
             this.getLimitList(this.curr);
           }
+          //宿迁市本级接口配置
+        } else if (id === '5d5frts4') {
+          this.sqCityApiConfigVisible = true;
+          if (this.filterConfigStatus == 'create') {
+            this.sqCityConfigList = JSON.parse(window.localStorage.getItem("sqCityConfigList")) || [];
+          } else {
+            this.getSqApiConfigList(this.curr);
+          }
         }
-      }
-      ,
+      },
       allUsers() {
         all().then(response => {
           response.forEach(item => {
@@ -1367,24 +1514,11 @@
         this.dialogLimitStatus = 'create';
         this.currentLimitingIndexVisible = true;
       }
-      ,
-      // handleTimeUpdate(row) {
-      //   if (this.filterConfigStatus == 'create') {
-      //   } else {
-      //     getOneApiTimeFilter(row.id)
-      //       .then(response => {
-      //         const result = response.data;
-      //         this.dialogTimeTitle = '修改时间';
-      //         this.readonly = true;
-      //         this.startplaceholder = result.stime;
-      //         this.endplaceholder = result.etime;
-      //         this.updateTimeId = result.id;
-      //         this.dialogTimeStatus = 'update';
-      //         this.timeVisible = true;
-      //       });
-      //   }
-      // }
-      //,
+      , handleSqCityConfigCreate() {
+        this.dialogSqCityConfigTitle = '宿迁市本级接口过滤';
+        this.dialogSqCityConfigStatus = 'create';
+        this.sqCityApiConfigIndexVisible = true;
+      },
       handleTimeDelete(scope) {
         if (this.filterConfigStatus == 'create') {
           this.apiTimeFilters.splice(scope.$index, 1);
@@ -1475,7 +1609,7 @@
         } else {
           getOneApiJsonKeyInfo(scope.row.id)
             .then(response => {
-              this.dialogJsonFilterTitle = '修改路由';
+              this.dialogJsonFilterTitle = '修改Json过滤';
               this.JsonFilterForm = response.data;
               this.updateJsonId = response.data.id;
               this.dialogJsonFilterStatus = 'update';
@@ -1537,7 +1671,23 @@
             });
         }
       }
-      ,
+      , handleSqCityConfigUpdate(scope) {
+        if (this.filterConfigStatus == 'create') {
+          this.createUpdateSqCityConfigId = scope.$index;
+          this.sqApiConfigForm = this.apiSqCityConfigs[scope.$index];
+          this.dialogSqCityConfigStatus = 'update';
+          this.sqCityApiConfigIndexVisible = true;
+        } else {
+          getOneApiCitysharedConfigInfo(this.curr)
+            .then(response => {
+              this.dialogSqCityConfigTitle = '修改限流';
+              this.sqApiConfigForm = response.data;
+              this.updateSqCityConfigId = response.data.apiId;
+              this.dialogSqCityConfigStatus = 'update';
+              this.sqCityApiConfigIndexVisible = true;
+            });
+        }
+      },
       handleLimitDelete(scope) {
         if (this.filterConfigStatus == 'create') {
           this.apiFlowConfigs.splice(scope.$index, 1);
@@ -1572,42 +1722,81 @@
                 });
             });
         }
+      }, handleSqCityConfigDelete(scope) {
+        if (this.filterConfigStatus == 'create') {
+          this.apiSqCityConfigs.splice(scope.$index, 1);
+          window.localStorage.setItem('sqCityConfigList', JSON.stringify(this.apiSqCityConfigs));
+          this.sqCityConfigList = JSON.parse(window.localStorage.getItem("sqCityConfigList")) || [];
+        } else {
+          this.$confirm('此操作将永久删除, 是否继续?', '提示', {
+            confirmButtonText: '确定',
+            cancelButtonText: '取消',
+            type: 'warning'
+          })
+            .then(() => {
+              delApiCitysharedConfig(scope.row.apiId)
+                .then(response => {
+                  const status = response.status;
+                  if (status === 20500) {
+                    this.$message({
+                      message: response.message,
+                      type: 'error',
+                      duration: 1500
+                    })
+                  } else {
+                    this.$notify({
+                      title: '成功',
+                      message: '删除成功',
+                      type: 'success',
+                      duration: 2000
+                    });
+                    const index = this.sqCityConfigList.indexOf(scope.row);
+                    this.sqCityConfigList.splice(index, 1);
+                  }
+                });
+            });
+        }
       }
       ,
-      create() {
-        this.submitAuthData();
-        this.$set(this.middle, 'filterUserjson', this.filterUserjson);
-        // const obj = Object.assign(this.form, this.middle, this.apiIpWhitelistFilters,
-        //   this.apiTimeFilters, this.apiJsonKeyFilters, this.apiFlowConfigs);
-        const obj = {};
-        obj.filterUserjson = this.filterUserjson;
-        obj.apiIpWhitelistFilters = this.apiIpWhitelistFilters;
-        obj.apiTimeFilters = this.apiTimeFilters;
-        obj.apiJsonKeyFilters = this.apiJsonKeyFilters;
-        obj.apiFlowConfigs = this.apiFlowConfigs;
-        const obj1 = Object.assign(this.form, obj);
-        console.log(obj1);
-        addObj(obj1).then(response => {
-          const status = response.status;
-          if (status === 20500) {
-            this.$message({
-              message: response.message,
-              type: 'error',
-              duration: 1500
-            })
-          } else {
-            this.resetTemp();
+      create(formName) {
+        const set = this.$refs;
+        set[formName].validate(valid => {
+          if (valid) {
+            this.submitAuthData();
+            this.$set(this.middle, 'filterUserjson', this.filterUserjson);
+            // const obj = Object.assign(this.form, this.middle, this.apiIpWhitelistFilters,
+            //   this.apiTimeFilters, this.apiJsonKeyFilters, this.apiFlowConfigs);
+            const obj = {};
+            obj.filterUserjson = this.filterUserjson;
+            obj.apiIpWhitelistFilters = this.apiIpWhitelistFilters;
+            obj.apiTimeFilters = this.apiTimeFilters;
+            obj.apiJsonKeyFilters = this.apiJsonKeyFilters;
+            obj.apiFlowConfigs = this.apiFlowConfigs;
+            obj.apiCitysharedConfigs = this.apiSqCityConfigs;
+            const obj1 = Object.assign(this.form, obj);
             this.dialogFormVisible = false;
-            this.getList();
-            this.$notify({
-              title: '成功',
-              message: '创建成功',
-              type: 'success',
-              duration: 2000
+            addObj(obj1).then(response => {
+              const status = response.status;
+              if (status === 20500) {
+                this.$message({
+                  message: response.message,
+                  type: 'error',
+                  duration: 1500
+                })
+              } else {
+                this.resetTemp();
+                // this.dialogFormVisible = false;
+                this.getList();
+                this.$notify({
+                  title: '成功',
+                  message: '创建成功',
+                  type: 'success',
+                  duration: 2000
+                });
+              }
             });
           }
         });
-
       },
       TimeCreate() {
         if (this.filterConfigStatus == 'create') {
@@ -1646,122 +1835,196 @@
             })
         }
       },
-      IPCreate() {
+      IPCreate(formName) {
+        const set = this.$refs;
         if (this.filterConfigStatus == 'create') {
-          const obj = {};
-          obj.ipContent = this.IPForm.ipContent;
-          obj.ipNote = this.IPForm.ipNote;
-          this.apiIpWhitelistFilters.push(obj);
-          window.localStorage.setItem('whiteListList', JSON.stringify(this.apiIpWhitelistFilters));
-          this.IPVisible = false;
-          this.whiteListList = JSON.parse(window.localStorage.getItem("whiteListList")) || [];
+          set[formName].validate(valid => {
+            if (valid) {
+              const obj = {};
+              obj.ipContent = this.IPForm.ipContent;
+              obj.ipNote = this.IPForm.ipNote;
+              this.apiIpWhitelistFilters.push(obj);
+              window.localStorage.setItem('whiteListList', JSON.stringify(this.apiIpWhitelistFilters));
+              this.IPVisible = false;
+              this.whiteListList = JSON.parse(window.localStorage.getItem("whiteListList")) || [];
+            }
+          });
         } else {
-          const obj = {};
-          obj.ipContent = this.IPForm.ipContent;
-          obj.ipNote = this.IPForm.ipNote;
-          obj.apiId = this.curr;
-          addObj2(obj)
-            .then(response => {
-              const status = response.status;
-              if (status === 20500) {
-                this.$message({
-                  message: response.message,
-                  type: 'error',
-                  duration: 1500
+          set[formName].validate(valid => {
+            if (valid) {
+              const obj = {};
+              obj.ipContent = this.IPForm.ipContent;
+              obj.ipNote = this.IPForm.ipNote;
+              obj.apiId = this.curr;
+              addObj2(obj)
+                .then(response => {
+                  const status = response.status;
+                  if (status === 20500) {
+                    this.$message({
+                      message: response.message,
+                      type: 'error',
+                      duration: 1500
+                    })
+                  } else {
+                    this.resetIPTemp();
+                    this.IPVisible = false;
+                    this.getWhiteList(this.curr);
+                    this.$notify({
+                      title: '成功',
+                      message: '创建成功',
+                      type: 'success',
+                      duration: 2000
+                    });
+                  }
                 })
-              } else {
-                this.resetIPTemp();
-                this.IPVisible = false;
-                this.getWhiteList(this.curr);
-                this.$notify({
-                  title: '成功',
-                  message: '创建成功',
-                  type: 'success',
-                  duration: 2000
-                });
-              }
-            })
+            }
+          });
         }
       }
       ,
-      JsonFilterCreate() {
+      JsonFilterCreate(formName) {
+        const set = this.$refs;
         if (this.filterConfigStatus == 'create') {
-          const obj = {};
-          obj.fromUser = this.JsonFilterForm.fromUser;
-          obj.fieldList = this.JsonFilterForm.fieldList;
-          this.apiJsonKeyFilters.push(obj);
-          window.localStorage.setItem('jsonFilterList', JSON.stringify(this.apiJsonKeyFilters));
-          this.JsonFilterIndexVisible = false;
-          this.jsonFilterList = JSON.parse(window.localStorage.getItem("jsonFilterList")) || [];
+          set[formName].validate(valid => {
+            if (valid) {
+              const obj = {};
+              obj.fromUser = this.JsonFilterForm.fromUser;
+              obj.fieldList = this.JsonFilterForm.fieldList;
+              this.apiJsonKeyFilters.push(obj);
+              window.localStorage.setItem('jsonFilterList', JSON.stringify(this.apiJsonKeyFilters));
+              this.JsonFilterIndexVisible = false;
+              this.jsonFilterList = JSON.parse(window.localStorage.getItem("jsonFilterList")) || [];
+            }
+          });
         } else {
-          const obj = {};
-          obj.fromUser = this.JsonFilterForm.fromUser;
-          obj.fieldList = this.JsonFilterForm.fieldList;
-          obj.apiId = this.curr;
-          addApiJsonKeyFilter(obj)
-            .then(response => {
-              const status = response.status;
-              if (status === 20500) {
-                this.$message({
-                  message: response.message,
-                  type: 'error',
-                  duration: 1500
+          set[formName].validate(valid => {
+            if (valid) {
+              const obj = {};
+              obj.fromUser = this.JsonFilterForm.fromUser;
+              obj.fieldList = this.JsonFilterForm.fieldList;
+              obj.apiId = this.curr;
+              addApiJsonKeyFilter(obj)
+                .then(response => {
+                  const status = response.status;
+                  if (status === 20500) {
+                    this.$message({
+                      message: response.message,
+                      type: 'error',
+                      duration: 1500
+                    })
+                  } else {
+                    this.resetJsonTemp();
+                    this.JsonFilterIndexVisible = false;
+                    this.getJsonFilterList(this.curr);
+                    this.$notify({
+                      title: '成功',
+                      message: '创建成功',
+                      type: 'success',
+                      duration: 2000
+                    });
+                  }
                 })
-              } else {
-                this.resetJsonTemp();
-                this.JsonFilterIndexVisible = false;
-                this.getJsonFilterList(this.curr);
-                this.$notify({
-                  title: '成功',
-                  message: '创建成功',
-                  type: 'success',
-                  duration: 2000
-                });
-              }
-            })
+            }
+          });
         }
       }
-      , limitCreate() {
+      ,
+      limitCreate(formName) {
+        const set = this.$refs;
         if (this.filterConfigStatus == 'create') {
-          if (this.apiFlowConfigs.length < 1) {
-            this.apiFlowConfigs.push(this.limitForm);
-            window.localStorage.setItem('currentLimitingList', JSON.stringify(this.apiFlowConfigs));
-            this.currentLimitingIndexVisible = false;
-            this.currentLimitingList = JSON.parse(window.localStorage.getItem("currentLimitingList")) || [];
-          } else {
-            alert("接口只能配置一个限流")
-          }
-        } else {
-          this.limitForm.apiId = this.curr;
-          insertApiFlowConfigInfo(this.limitForm)
-            .then(response => {
-              const status = response.status;
-              if (status === 20500) {
-                this.$message({
-                  message: response.message,
-                  type: 'error',
-                  duration: 1500
-                })
-              } else {
-                this.resetLimitTemp();
+          set[formName].validate(valid => {
+            if (valid) {
+              if (this.apiFlowConfigs.length < 1) {
+                this.apiFlowConfigs.push(this.limitForm);
+                window.localStorage.setItem('currentLimitingList', JSON.stringify(this.apiFlowConfigs));
                 this.currentLimitingIndexVisible = false;
-                this.getLimitList(this.curr);
-                this.$notify({
-                  title: '成功',
-                  message: '创建成功',
-                  type: 'success',
-                  duration: 2000
-                });
+                this.currentLimitingList = JSON.parse(window.localStorage.getItem("currentLimitingList")) || [];
+              } else {
+                alert("接口只能配置一个限流")
               }
-            })
+            }
+          });
+        } else {
+          set[formName].validate(valid => {
+            if (valid) {
+              this.limitForm.apiId = this.curr;
+              insertApiFlowConfigInfo(this.limitForm)
+                .then(response => {
+                  const status = response.status;
+                  if (status === 20500) {
+                    this.$message({
+                      message: response.message,
+                      type: 'error',
+                      duration: 1500
+                    })
+                  } else {
+                    this.resetLimitTemp();
+                    this.currentLimitingIndexVisible = false;
+                    this.getLimitList(this.curr);
+                    this.$notify({
+                      title: '成功',
+                      message: '创建成功',
+                      type: 'success',
+                      duration: 2000
+                    });
+                  }
+                })
+            }
+          });
         }
-      },
-
+      }
+      ,
+      sqCityConfigCreate(formName) {
+        const set = this.$refs;
+        if (this.filterConfigStatus == 'create') {
+          set[formName].validate(valid => {
+            if (valid) {
+              if (this.apiSqCityConfigs.length < 1) {
+                this.apiSqCityConfigs.push(this.sqApiConfigForm);
+                window.localStorage.setItem('sqCityConfigList', JSON.stringify(this.apiSqCityConfigs));
+                this.sqCityApiConfigIndexVisible = false;
+                this.sqCityConfigList = JSON.parse(window.localStorage.getItem("sqCityConfigList")) || [];
+              } else {
+                alert("接口只能配置唯一一个")
+              }
+            }
+          });
+        } else {
+          set[formName].validate(valid => {
+            if (valid) {
+              this.sqApiConfigForm.apiId = this.curr;
+              insertApiCitysharedConfigInfo(this.sqApiConfigForm)
+                .then(response => {
+                  const status = response.status;
+                  if (status === 20500) {
+                    this.$message({
+                      message: response.message,
+                      type: 'error',
+                      duration: 1500
+                    })
+                  } else {
+                    this.resetSqCityConfigTemp();
+                    this.sqCityApiConfigIndexVisible = false;
+                    this.getSqApiConfigList(this.curr);
+                    this.$notify({
+                      title: '成功',
+                      message: '创建成功',
+                      type: 'success',
+                      duration: 2000
+                    });
+                  }
+                })
+            }
+          });
+        }
+      }
+      ,
       TimeCancel() {
         this.timeIndexVisible = false;
       }
       ,
       JsonFilterCancel() {
+        this.resetJsonTemp();
         this.JsonFilterIndexVisible = false;
       }
       ,
@@ -1771,7 +2034,12 @@
       }
       ,
       limitCancel() {
+        this.resetLimitTemp();
         this.currentLimitingIndexVisible = false;
+      },
+      sqlCityConfigCancel() {
+        this.resetSqCityConfigTemp();
+        this.sqCityApiConfigIndexVisible = false;
       }
       // TimeUpdate() {
       //   this.timeVisible = false;
@@ -1802,113 +2070,178 @@
       //   });
       // }
       ,
-      IPUpdate() {
+      IPUpdate(formName) {
+        const set = this.$refs;
         if (this.filterConfigStatus == 'create') {
-          this.apiIpWhitelistFilters.splice(this.createUpdateIPId, 1);
-          const obj = {};
-          obj.ipContent = this.IPForm.ipContent;
-          obj.ipNote = this.IPForm.ipNote;
-          this.apiIpWhitelistFilters.push(obj);
-          window.localStorage.setItem('whiteListList', JSON.stringify(this.apiIpWhitelistFilters));
-          this.IPVisible = false;
-          this.whiteListList = JSON.parse(window.localStorage.getItem("whiteListList")) || [];
-        } else {
-          this.IPVisible = false;
-          const obj = {};
-          obj.ipContent = this.IPForm.ipContent;
-          obj.ipNote = this.IPForm.ipNote;
-          obj.apiId = this.curr;
-          obj.id = this.updateWhiteId;
-          putObj2(this.updateWhiteId, obj).then(response => {
-            const status = response.status;
-            if (status === 20500) {
-              this.$message({
-                message: response.message,
-                type: 'error',
-                duration: 1500
-              })
-            } else {
-              this.resetIPTemp();
+          set[formName].validate(valid => {
+            if (valid) {
+              this.apiIpWhitelistFilters.splice(this.createUpdateIPId, 1);
+              const obj = {};
+              obj.ipContent = this.IPForm.ipContent;
+              obj.ipNote = this.IPForm.ipNote;
+              this.apiIpWhitelistFilters.push(obj);
+              window.localStorage.setItem('whiteListList', JSON.stringify(this.apiIpWhitelistFilters));
               this.IPVisible = false;
-              this.getWhiteList(this.curr);
-              this.$notify({
-                title: '成功',
-                message: '修改成功',
-                type: 'success',
-                duration: 2000
+              this.whiteListList = JSON.parse(window.localStorage.getItem("whiteListList")) || [];
+            }
+          });
+        } else {
+          set[formName].validate(valid => {
+            if (valid) {
+              this.IPVisible = false;
+              const obj = {};
+              obj.ipContent = this.IPForm.ipContent;
+              obj.ipNote = this.IPForm.ipNote;
+              obj.apiId = this.curr;
+              obj.id = this.updateWhiteId;
+              putObj2(this.updateWhiteId, obj).then(response => {
+                const status = response.status;
+                if (status === 20500) {
+                  this.$message({
+                    message: response.message,
+                    type: 'error',
+                    duration: 1500
+                  })
+                } else {
+                  this.resetIPTemp();
+                  this.IPVisible = false;
+                  this.getWhiteList(this.curr);
+                  this.$notify({
+                    title: '成功',
+                    message: '修改成功',
+                    type: 'success',
+                    duration: 2000
+                  });
+                }
               });
             }
           });
         }
       }
       ,
-      JsonFilterUpdate() {
+      JsonFilterUpdate(formName) {
+        const set = this.$refs;
         if (this.filterConfigStatus == 'create') {
-          this.apiJsonKeyFilters.splice(this.createUpdateJsonFilterId, 1);
-          const obj = {};
-          obj.fromUser = this.JsonFilterForm.fromUser;
-          obj.fieldList = this.JsonFilterForm.fieldList;
-          this.apiJsonKeyFilters.push(obj);
-          window.localStorage.setItem('jsonFilterList', JSON.stringify(this.apiJsonKeyFilters));
-          this.JsonFilterIndexVisible = false;
-          this.jsonFilterList = JSON.parse(window.localStorage.getItem("jsonFilterList")) || [];
-        } else {
-          this.JsonFilterVisible = false;
-          const obj = {};
-          obj.fromUser = this.JsonFilterForm.fromUser;
-          obj.fieldList = this.JsonFilterForm.fieldList;
-          obj.apiId = this.curr;
-          obj.id = this.updateJsonId;
-          updateOneApiJsonKeyInfo(this.updateJsonId, obj).then(response => {
-            const status = response.status;
-            if (status === 20500) {
-              this.$message({
-                message: response.message,
-                type: 'error',
-                duration: 1500
-              })
-            } else {
-              this.resetJsonTemp();
+          set[formName].validate(valid => {
+            if (valid) {
+              this.apiJsonKeyFilters.splice(this.createUpdateJsonFilterId, 1);
+              const obj = {};
+              obj.fromUser = this.JsonFilterForm.fromUser;
+              obj.fieldList = this.JsonFilterForm.fieldList;
+              this.apiJsonKeyFilters.push(obj);
+              window.localStorage.setItem('jsonFilterList', JSON.stringify(this.apiJsonKeyFilters));
               this.JsonFilterIndexVisible = false;
-              this.getJsonFilterList(this.curr);
-              this.$notify({
-                title: '成功',
-                message: '修改成功',
-                type: 'success',
-                duration: 2000
+              this.jsonFilterList = JSON.parse(window.localStorage.getItem("jsonFilterList")) || [];
+            }
+          });
+        } else {
+          // this.JsonFilterVisible = true;
+          set[formName].validate(valid => {
+            if (valid) {
+              const obj = {};
+              obj.fromUser = this.JsonFilterForm.fromUser;
+              obj.fieldList = this.JsonFilterForm.fieldList;
+              obj.apiId = this.curr;
+              obj.id = this.updateJsonId;
+              updateOneApiJsonKeyInfo(this.updateJsonId, obj).then(response => {
+                const status = response.status;
+                if (status === 20500) {
+                  this.$message({
+                    message: response.message,
+                    type: 'error',
+                    duration: 1500
+                  })
+                } else {
+                  this.resetJsonTemp();
+                  this.JsonFilterIndexVisible = false;
+                  this.getJsonFilterList(this.curr);
+                  this.$notify({
+                    title: '成功',
+                    message: '修改成功',
+                    type: 'success',
+                    duration: 2000
+                  });
+                }
               });
             }
           });
         }
       }
       ,
-      limitUpdate() {
+      limitUpdate(formName) {
+        const set = this.$refs;
         if (this.filterConfigStatus == 'create') {
-          this.apiFlowConfigs.splice(this.createUpdateLimitId, 1);
-          // this.apiFlowConfigs = [];
-          this.apiFlowConfigs.push(this.limitForm);
-          console.log(this.limitForm);
-          window.localStorage.setItem('currentLimitingList', JSON.stringify(this.apiFlowConfigs));
-          this.currentLimitingIndexVisible = false;
-          this.currentLimitingList = JSON.parse(window.localStorage.getItem("currentLimitingList")) || [];
-        } else {
-          updateApiFlowConfigInfo(this.updateLimitId, this.limitForm).then(response => {
-            const status = response.status;
-            if (status === 20500) {
-              this.$message({
-                message: response.message,
-                type: 'error',
-                duration: 1500
-              })
-            } else {
-              this.resetLimitTemp();
+          set[formName].validate(valid => {
+            if (valid) {
+              this.apiFlowConfigs.splice(this.createUpdateLimitId, 1);
+              // this.apiFlowConfigs = [];
+              this.apiFlowConfigs.push(this.limitForm);
+              window.localStorage.setItem('currentLimitingList', JSON.stringify(this.apiFlowConfigs));
               this.currentLimitingIndexVisible = false;
-              this.getLimitList(this.curr);
-              this.$notify({
-                title: '成功',
-                message: '修改成功',
-                type: 'success',
-                duration: 2000
+              this.currentLimitingList = JSON.parse(window.localStorage.getItem("currentLimitingList")) || [];
+            }
+          });
+        } else {
+          set[formName].validate(valid => {
+            if (valid) {
+              updateApiFlowConfigInfo(this.updateLimitId, this.limitForm).then(response => {
+                const status = response.status;
+                if (status === 20500) {
+                  this.$message({
+                    message: response.message,
+                    type: 'error',
+                    duration: 1500
+                  })
+                } else {
+                  this.resetLimitTemp();
+                  this.currentLimitingIndexVisible = false;
+                  this.getLimitList(this.curr);
+                  this.$notify({
+                    title: '成功',
+                    message: '修改成功',
+                    type: 'success',
+                    duration: 2000
+                  });
+                }
+              });
+            }
+          });
+        }
+      }
+      , sqCityConfigUpdate(formName) {
+        const set = this.$refs;
+        if (this.filterConfigStatus == 'create') {
+          set[formName].validate(valid => {
+            if (valid) {
+              this.apiSqCityConfigs.splice(this.createUpdateSqCityConfigId, 1);
+              this.apiSqCityConfigs.push(this.sqApiConfigForm);
+              window.localStorage.setItem('sqCityConfigList', JSON.stringify(this.apiSqCityConfigs));
+              this.sqCityApiConfigIndexVisible = false;
+              this.sqCityConfigList = JSON.parse(window.localStorage.getItem("sqCityConfigList")) || [];
+            }
+          });
+        } else {
+          set[formName].validate(valid => {
+            if (valid) {
+              updateApiCitysharedConfig(this.updateSqCityConfigId, this.sqApiConfigForm).then(response => {
+                const status = response.status;
+                if (status === 20500) {
+                  this.$message({
+                    message: response.message,
+                    type: 'error',
+                    duration: 1500
+                  })
+                } else {
+                  this.resetSqCityConfigTemp();
+                  this.sqCityApiConfigIndexVisible = false;
+                  this.getSqApiConfigList(this.curr);
+                  this.$notify({
+                    title: '成功',
+                    message: '修改成功',
+                    type: 'success',
+                    duration: 2000
+                  });
+                }
               });
             }
           });
@@ -1945,8 +2278,16 @@
           jiange: 0
         }
       }
-      ,
+      , resetSqCityConfigTemp() {
+        this.sqApiConfigForm = {
+          ak: undefined,
+          appId: undefined,
+          serviceId: undefined,
+          sk: undefined
+        }
+      },
       getTimeList(curr) {
+        this.timeList = null;
         getApiTimeFilterInfoList(curr).then(response => {
           const result = response;
           if (result.IsFilter) {
@@ -1956,29 +2297,29 @@
       }
       ,
       getWhiteList(curr) {
+        this.whiteListList = null;
         getApiIPFilterInfoList(curr).then(response => {
           const result = response;
           if (result.IsIPFilter) {
             this.whiteListList = result.apiIPFilterInfoList;
           }
         });
-      }
-      ,
+      },
       getJsonFilterList(curr) {
+        this.jsonFilterList = null;
         getAllapiJsonKeyInfoList(curr).then(response => {
           const result = response;
           if (result.IsFilter) {
             this.jsonFilterList = result.apiJsonFilterInfoList;
           }
         });
-      }
-      ,
+      },
       getLimitList(curr) {
         this.currentLimitingList = null;
         getOneApiFlowConfigInfo(curr).then(response => {
           const status = response.status;
           const data = response.data;
-          if (status === 200 && typeof data !== 'undefined') {
+          if (status === 200 && Object.keys(data).length != 0) {
             const obj = [];
             obj.push(response.data);
             this.currentLimitingList = obj;
@@ -1990,6 +2331,23 @@
             })
           }
         })
+      }, getSqApiConfigList(curr) {
+        this.sqCityConfigList = null;
+        getOneApiCitysharedConfigInfo(curr).then(response => {
+          const status = response.status;
+          const data = response.data;
+          if (status === 200 && Object.keys(data).length != 0) {
+            const obj = [];
+            obj.push(response.data);
+            this.sqCityConfigList = obj;
+          } else if (status === 20500) {
+            this.$message({
+              message: response.message,
+              type: 'error',
+              duration: 1500
+            })
+          }
+        });
       }
       ,
       closeDialog() {
@@ -1997,12 +2355,31 @@
         this.updateFilterList = [];
         this.resetTemp();
         window.localStorage.clear();
-      }, _initScroll() {
-        new BScroll('.key-wrapper', {
-          scrollY: true // 水平滑动
-        })
+      },
+      formatLimitType(row, column) {
+        if (row.limitType === 'D') {
+          return '天'
+        } else if (row.limitType === 'H') {
+          return '时'
+        } else if (row.limitType === 'M') {
+          return '分'
+        } else if (row.limitType === 'S') {
+          return '秒'
+        }
       }
-
+      ,
+      filterExplain(filterId) {
+        getOneApiRouterFilter(filterId).then(response => {
+          if (typeof response.data.functionalDesc !== "undefined") {
+            this.filterExplainDes = response.data.functionalDesc;
+          }
+        });
+      },
+      closeKeyDialog() {
+        this.keyList = [];
+        this.keyArr = [];
+        this.keyVisible = false;
+      },
     }
   }
 </script>

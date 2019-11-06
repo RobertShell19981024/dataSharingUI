@@ -19,12 +19,12 @@ const service = axios.create({
 service.interceptors.request.use(config => {
   // Do something before request is sent
   if (store.getters.token) {
-    config.headers.Authorization = getToken(); // 让每个请求携带token--['X-Token']为自定义key 请根据实际情况自行修改
+    config.headers.GxAuthorization = getToken(); // 让每个请求携带token--['X-Token']为自定义key 请根据实际情况自行修改
   }
   return config
 }, error => {
   // Do something with request error
-  console.log(error) // for debug
+  // console.log(error) // for debug
   Promise.reject(error)
 })
 
@@ -92,7 +92,7 @@ service.interceptors.response.use(
       })
       return Promise.reject('error')
     }
-    const info = response.data
+    const info = response.data;
     if (response.status === 401 && info.status === 40101) {
       MessageBox.confirm('你已被登出，可以取消继续留在该页面，或者重新登录', '确定登出', {
         confirmButtonText: '重新登录',

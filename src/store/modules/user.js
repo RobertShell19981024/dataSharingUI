@@ -72,9 +72,10 @@ const user = {
   actions: {
     // 用户名登录
     LoginByUsername({commit}, userInfo) {
+      let Base64 = require('js-base64').Base64
       const username = userInfo.username.trim()
       return new Promise((resolve, reject) => {
-        loginByUsername(username, userInfo.password).then(response => {
+        loginByUsername(username, Base64.encode(userInfo.password)).then(response => {
           if (response === '' || response === undefined) {
             Message({
               message: '账户或密码错误！',
@@ -101,7 +102,7 @@ const user = {
           const data = response
           commit('SET_ROLES', 'admin')
           commit('SET_NAME', data.name)
-          commit('SET_AVATAR', 'http://git.oschina.net/uploads/42/547642_geek_qi.png?1499487420')
+          commit('SET_AVATAR', 'http://git.oschina.net/uploads/42/547642_geek_qi.png?1499487420');
           commit('SET_INTRODUCTION', data.description)
           const menus = {}
           for (let i = 0; i < data.menus.length; i++) {

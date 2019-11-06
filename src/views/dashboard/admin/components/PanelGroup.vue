@@ -3,7 +3,7 @@
     <el-col :xs="12" :sm="12" :lg="6" class="card-panel-col">
       <div class='card-panel' @click="handleSetLineChartData('newVisitis')">
         <div class="card-panel-icon-wrapper icon-people">
-          <svg-icon icon-class="peoples" class-name="card-panel-icon"/>
+          <svg-icon icon-class="interfaceVisit" class-name="card-panel-icon"/>
         </div>
         <div class="card-panel-description">
           <div class="card-panel-text">今日接口访问量</div>
@@ -25,23 +25,24 @@
         </div>
       </div>
     </el-col>
-    <el-col :xs="12" :sm="12" :lg="6" class="card-panel-col">
+    <router-link to="/myInterface/myPublicInterface"> <el-col :xs="12" :sm="12" :lg="6" class="card-panel-col">
       <div class="card-panel" @click="handleSetLineChartData('purchases')">
         <div class="card-panel-icon-wrapper icon-money">
-          <svg-icon icon-class="org" class-name="card-panel-icon"/>
+          <svg-icon icon-class="publicInterface" class-name="card-panel-icon"/>
         </div>
-        <div class="card-panel-description">
-          <div class="card-panel-text">发布接口数量</div>
+       <div class="card-panel-description">
+         <div class="card-panel-text">发布接口数量</div>
           <count-to class="card-panel-num" :startVal="0" :endVal="getCountPublishByApiOwnerIdCount"
                     :duration="3200"></count-to>
           <span>个</span>
         </div>
       </div>
     </el-col>
-    <el-col :xs="12" :sm="12" :lg="6" class="card-panel-col">
+    </router-link>
+    <router-link to="/myInterface/myRequestInterface">  <el-col :xs="12" :sm="12" :lg="6" class="card-panel-col">
       <div class="card-panel" @click="handleSetLineChartData('shoppings')">
         <div class="card-panel-icon-wrapper icon-shoppingCard">
-          <svg-icon icon-class="form" class-name="card-panel-icon"/>
+          <svg-icon icon-class="requestInterface" class-name="card-panel-icon"/>
         </div>
         <div class="card-panel-description">
           <div class="card-panel-text">请求接口数量</div>
@@ -50,6 +51,7 @@
         </div>
       </div>
     </el-col>
+    </router-link>
   </el-row>
 </template>
 

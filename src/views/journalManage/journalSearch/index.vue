@@ -1,71 +1,78 @@
 <template>
   <div class="app-container calendar-list-container">
     <div class="filter-container">
-    <el-input @keyup.enter.native="handleFilter" style="width: 200px;" class="filter-item" placeholder="请输入ip访问地址" v-model="listQuery.uri">
-    </el-input>
-    <el-button class="filter-item" type="primary" icon="search" @click="handleFilter">搜索</el-button>
+      <el-input @keyup.enter.native="handleFilter" style="width: 200px;" class="filter-item" placeholder="请输入接口名称" v-model="listQuery.apiName">
+      </el-input>
+      <el-button class="filter-item" type="primary" icon="search" @click="handleFilter">搜索</el-button>
     </div>
     <el-table :key='tableKey' :data="list" v-loading.body="false" border fit highlight-current-row
               style="width: 100%" v-loading="!listLoading">
       <el-table-column prop="index" align="center" width="93" label="序号">
       </el-table-column>
-      <el-table-column width="170px" align="center" label="接口主鍵">
+      <el-table-column width="350px" align="center" label="接口Id">
         <template slot-scope="scope">
-          <span>{{scope.row.id}}</span>
+          <span>{{scope.row.apiId}}</span>
         </template>
       </el-table-column>
-      <el-table-column width="250px" align="center" label="路径">
+      <el-table-column width="200px" align="center" label="用户名">
         <template slot-scope="scope">
-          <span>{{scope.row.uri}}</span>
+          <span>{{scope.row.userName}}</span>
         </template>
       </el-table-column>
-      <el-table-column width="300px" align="center" label="访问用户ID">
+      <el-table-column width="200px" align="center" label="转发实际地址">
         <template slot-scope="scope">
-          <span>{{scope.row.fromUser}}</span>
+          <span>{{scope.row.apiUrl}}</span>
         </template>
       </el-table-column>
-      <el-table-column width="300px" align="center" label="平台签名公钥">
+      <el-table-column width="100px" align="center" label="请求共享平台地址">
+        <template slot-scope="scope">
+          <span>{{scope.row.accessClientIp}}</span>
+        </template>
+      </el-table-column>
+      <el-table-column align="center" label="访问时间">
+        <template slot-scope="scope">
+          <span >{{scope.row.accessTime}}</span>
+        </template>
+      </el-table-column>
+      <el-table-column align="center" label="请求数据">
         <template slot-scope="scope">
           <el-popover
             placement="left"
             width="200"
             trigger="hover"
           >
-            <span style="font-size: 16px;font-weight: 500">签名公钥</span>
-            <el-button type="primary" v-clipboard:copy="scope.row.ptPubKey"
-                          v-clipboard:success="onCopy"
-                          v-clipboard:error="onError" size="mini" style="margin-left: 30px">复制
-          </el-button>
-            <span slot="reference" v-if="scope.row.ptPubKey!=undefined">{{scope.row.ptPubKey.length<=100?scope.row.ptPubKey:scope.row.ptPubKey.substring(0,100)+"..."}}</span>
-            <div style="height: 200px;overflow: auto">
-              {{scope.row.ptPubKey}}<br/>
-            </div>
-          </el-popover>
-        </template>
-      </el-table-column>
-      <el-table-column width="350px" align="center" label="签名私钥">
-        <template slot-scope="scope">
-          <el-popover
-            placement="left"
-            width="200"
-            trigger="hover"
-          >
-            <span style="font-size: 16px;font-weight: 500">签名私钥</span>
-            <el-button type="primary" v-clipboard:copy="scope.row.secretKey"
+            <span style="font-size: 16px;font-weight: 500">请求数据</span>
+            <el-button type="primary" v-clipboard:copy="scope.row.requestData"
                        v-clipboard:success="onCopy"
                        v-clipboard:error="onError" size="mini" style="margin-left: 30px">复制
-          </el-button>
-            <span slot="reference" v-if="scope.row.secretKey!=undefined">{{scope.row.secretKey.length<=100?scope.row.secretKey:scope.row.secretKey.substring(0,100)+"..."}}</span>
+            </el-button>
+            <span slot="reference" v-if="scope.row.requestData!=undefined">{{scope.row.requestData.length<=100?scope.row.requestData:scope.row.requestData.substring(0,100)+"..."}}</span>
             <div style="height: 200px;overflow: auto">
-            {{scope.row.secretKey}}<br/>
+              {{scope.row.requestData}}<br/>
             </div>
           </el-popover>
         </template>
       </el-table-column>
-      <el-table-column  align="center" label="数据密钥">
+      <el-table-column align="center" label="反馈数据">
         <template slot-scope="scope">
-          <span>{{scope.row.symPubkey}}</span>
+          <el-popover
+            placement="left"
+            width="200"
+            trigger="hover"
+          >
+            <span style="font-size: 16px;font-weight: 500">反馈数据</span>
+            <el-button type="primary" v-clipboard:copy="scope.row.responseData"
+                       v-clipboard:success="onCopy"
+                       v-clipboard:error="onError" size="mini" style="margin-left: 30px">复制
+            </el-button>
+            <span slot="reference" v-if="scope.row.responseData!=undefined">{{scope.row.responseData.length<=100?scope.row.responseData:scope.row.responseData.substring(0,100)+"..."}}</span>
+            <div style="height: 200px;overflow: auto">
+              {{scope.row.responseData}}<br/>
+            </div>
+          </el-popover>
         </template>
+      </el-table-column>
+      <el-table-column align="center" label="">
       </el-table-column>
     </el-table>
     <div v-show="listLoading" class="pagination-container">
@@ -80,8 +87,8 @@
 
 <script>
   import {
-    getAdminAllApiJgtoPtInfo
-  } from '@/api/myRequest/requestInterfaceManage/index';
+    getApiAccessRecords
+  } from '@/api/journalManage/journalSearch/index';
 
   export default {
     data() {
@@ -93,15 +100,8 @@
         listQuery: {
           page: 1,
           limit: 10,
-          uri:undefined
-        }, handleSizeChange(val) {
-          this.listQuery.limit = val;
-          this.getList();
-        },
-        handleCurrentChange(val) {
-          this.listQuery.page = val;
-          this.getList();
-        },
+          apiName:undefined
+        }
       }
     },
     mounted() {
@@ -110,7 +110,7 @@
     methods: {
       getList() {
         this.listLoading = false;
-        getAdminAllApiJgtoPtInfo(this.listQuery)
+        getApiAccessRecords(this.listQuery)
           .then(response => {
             const status = response.status;
             if (status === 200) {
@@ -129,6 +129,16 @@
               })
             }
           })
+      }, handleSizeChange(val) {
+        this.listQuery.limit = val;
+        this.getList();
+      },
+      handleCurrentChange(val) {
+        this.listQuery.page = val;
+        this.getList();
+      },
+      handleFilter() {
+        this.getList();
       },
       onCopy() {
         this.$message({
@@ -146,10 +156,6 @@
           duration: 1500
         })
       },
-      handleFilter() {
-        this.getList();
-      }
-
     }
   }
 </script>

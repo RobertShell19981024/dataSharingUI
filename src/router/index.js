@@ -386,6 +386,11 @@ export const asyncRouterMap = [{
         component: _import('myInterface/myRequestInterface/index'),
         name: '我的请求接口',
         authority: 'myRequestInterface'
+      }, {
+        path: 'nationalInterfaceConfig',
+        component: _import('myInterface/nationalInterfaceConfig/index'),
+        name: '国家级接口访问配置',
+        authority: 'nationalInterfaceConfig'
       }]
   }, {
     path: '/interfaceManage',
@@ -398,11 +403,23 @@ export const asyncRouterMap = [{
       component: _import('interfaceManage/publicInterfaceManage/index'),
       name: '发布接口管理',
       authority: 'publicInterfaceManage'
-    },{
+    }, {
       path: 'requestInterfaceManage',
       component: _import('interfaceManage/requestInterfaceManage/index'),
       name: '请求接口管理',
       authority: 'requestInterfaceManage'
+    },]
+  },{
+    path: '/journalManage',
+    component: Layout,
+    name: '日志管理',
+    icon: 'setting',
+    authority: 'journalManage',
+    children: [{
+      path: 'journalSearch',
+      component: _import('journalManage/journalSearch/index'),
+      name: '日志查询',
+      authority: 'journalSearch'
     }]
   }
 ];

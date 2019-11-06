@@ -9,22 +9,6 @@ import { debounce } from '@/utils'
 
 export default {
   props: {
-    className: {
-      type: String,
-      default: 'chart'
-    },
-    width: {
-      type: String,
-      default: '100%'
-    },
-    height: {
-      type: String,
-      default: '350px'
-    },
-    autoResize: {
-      type: Boolean,
-      default: true
-    },
     chartData: {
       type: Object
     }
@@ -35,19 +19,9 @@ export default {
     }
   },
   mounted() {
-    this.initChart()
-    if (this.autoResize) {
-      this.__resizeHanlder = debounce(() => {
-        if (this.chart) {
-          this.chart.resize()
-        }
-      }, 100)
-      window.addEventListener('resize', this.__resizeHanlder)
-    }
 
-    // 监听侧边栏的变化
-    const sidebarElm = document.getElementsByClassName('sidebar-container')[0]
-    sidebarElm.addEventListener('transitionend', this.__resizeHanlder)
+    this.initChart();
+
   },
   beforeDestroy() {
     if (!this.chart) {
@@ -72,7 +46,7 @@ export default {
     }
   },
   methods: {
-    setOptions({ expectedData, actualData } = {}) {
+    setOptions({ success, fail } = {}) {
       this.chart.setOption({
         xAxis: {
           data: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
@@ -115,7 +89,7 @@ export default {
           },
           smooth: true,
           type: 'line',
-          data: expectedData,
+          data: success,
           animationDuration: 2800,
           animationEasing: 'cubicInOut'
         },
@@ -135,7 +109,7 @@ export default {
               }
             }
           },
-          data: actualData,
+          data: fail,
           animationDuration: 2800,
           animationEasing: 'quadraticOut'
         }]
@@ -144,7 +118,7 @@ export default {
     initChart() {
       this.chart = echarts.init(this.$el, 'macarons')
       this.setOptions(this.chartData)
-    }
+    },
   }
 }
 </script>

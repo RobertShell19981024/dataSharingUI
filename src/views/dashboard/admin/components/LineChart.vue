@@ -31,38 +31,19 @@ export default {
   },
   data() {
     return {
-      chart: null
+      chart: null,
+      week:[],
     }
   },
   mounted() {
-    this.initChart()
-    if (this.autoResize) {
-      this.__resizeHanlder = debounce(() => {
-        if (this.chart) {
-          this.chart.resize()
-        }
-      }, 100)
-      window.addEventListener('resize', this.__resizeHanlder)
+    this.initChart();
+    let data=[];
+    for(let i=6;i>=0;i--){
+      data.push(this.getWeek(-i))
     }
-
-    // 监听侧边栏的变化
-    const sidebarElm = document.getElementsByClassName('sidebar-container')[0]
-    sidebarElm.addEventListener('transitionend', this.__resizeHanlder)
+    this.week=data;
   },
-  beforeDestroy() {
-    if (!this.chart) {
-      return
-    }
-    if (this.autoResize) {
-      window.removeEventListener('resize', this.__resizeHanlder)
-    }
 
-    const sidebarElm = document.getElementsByClassName('sidebar-container')[0]
-    sidebarElm.removeEventListener('transitionend', this.__resizeHanlder)
-
-    this.chart.dispose()
-    this.chart = null
-  },
   watch: {
     chartData: {
       deep: true,
@@ -72,10 +53,10 @@ export default {
     }
   },
   methods: {
-    setOptions({ expectedData, actualData } = {}) {
+    setOptions({ success, fail } = {}) {
       this.chart.setOption({
         xAxis: {
-          data: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+          data: this.week,
           boundaryGap: false,
           axisTick: {
             show: false
@@ -115,7 +96,7 @@ export default {
           },
           smooth: true,
           type: 'line',
-          data: expectedData,
+          data: success,
           animationDuration: 2800,
           animationEasing: 'cubicInOut'
         },
@@ -135,7 +116,7 @@ export default {
               }
             }
           },
-          data: actualData,
+          data: fail,
           animationDuration: 2800,
           animationEasing: 'quadraticOut'
         }]
@@ -144,6 +125,24 @@ export default {
     initChart() {
       this.chart = echarts.init(this.$el, 'macarons')
       this.setOptions(this.chartData)
+    },
+    getWeek (day) {
+      let today = new Date();
+      let targetday_milliseconds=today.getTime() + 1000*60*60*24*day;
+      today.setTime(targetday_milliseconds);
+      let tYear = today.getFullYear();
+      let tMonth = today.getMonth();
+      let tDate = today.getDate();
+      tMonth = this.doHandleMonth(tMonth + 1);
+      tDate =  this.doHandleMonth(tDate);
+      return tYear+"-"+tMonth+"-"+tDate;
+    },
+    doHandleMonth(month){
+      let m = month;
+      if(month.toString().length == 1){
+        m = "0" + month;
+      }
+      return m;
     }
   }
 }

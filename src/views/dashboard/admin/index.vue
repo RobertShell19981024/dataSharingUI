@@ -1,20 +1,19 @@
 <template>
   <div class="dashboard-editor-container">
     <panel-group></panel-group>
-    <el-row :gutter="32">
-      <el-col :xs="24" :sm="24" :lg="12">
-        <div class="chart-wrapper">
-          <bar-chart></bar-chart>
-        </div>
-      </el-col>
-      <el-col :xs="24" :sm="24" :lg="12">
-        <div class="chart-wrapper">
-          <bar-chart2></bar-chart2>
-        </div>
-      </el-col>
-    </el-row>
-
-    <el-row style="background:#fff;padding:16px 16px 0;margin-bottom:32px;">
+    <!--<el-row :gutter="32">-->
+    <!--<el-col :xs="24" :sm="24" :lg="12">-->
+    <!--<div class="chart-wrapper">-->
+    <!--<bar-chart></bar-chart>-->
+    <!--</div>-->
+    <!--</el-col>-->
+    <!--<el-col :xs="24" :sm="24" :lg="12">-->
+    <!--<div class="chart-wrapper">-->
+    <!--<bar-chart2></bar-chart2>-->
+    <!--</div>-->
+    <!--</el-col>-->
+    <!--</el-row>-->
+    <el-row style="background:#fff;padding:16px 16px 0;margin-bottom:100px;margin-top: 80px">
       <line-chart :chart-data="lineChartData"></line-chart>
     </el-row>
 
@@ -32,15 +31,14 @@ import BarChart2 from './components/BarChart2'
 import TransactionTable from './components/TransactionTable'
 import TodoList from './components/TodoList'
 import BoxCard from './components/BoxCard'
-
-const lineChartData = {
-  newVisitis: {
-    expectedData: [100, 120, 161, 134, 105, 160, 165],
-    actualData: [120, 82, 91, 154, 162, 140, 145]
-  }
-}
+import {
+  getCountLog
+} from '@/api/journalManage/journalSearch/index';
 
 export default {
+  mounted(){
+    this.getCountLog();
+  },
   name: 'dashboard-admin',
   components: {
     GithubCorner,
@@ -56,12 +54,14 @@ export default {
   },
   data() {
     return {
-      lineChartData: lineChartData.newVisitis
+      lineChartData: {}
     }
   },
   methods: {
-    handleSetLineChartData(type) {
-      this.lineChartData = lineChartData[type]
+    getCountLog(){
+      getCountLog().then((response)=>{
+       this.lineChartData = response
+      })
     }
   }
 }

@@ -6,14 +6,9 @@
     <el-button class="filter-item" type="primary" icon="search" @click="handleFilter">搜索</el-button>
     </div>
     <el-table :key='tableKey' :data="list" v-loading.body="false" border fit highlight-current-row
-              style="width: 100%" v-loading="!listLoading">
-      <el-table-column prop="index" align="center" width="93" label="序号">
+              style="width: 100%">
+      <el-table-column type="index" align="center" width="93" label="序号">
       </el-table-column>
-      <el-table-column width="200px" align="center" label="接口主鍵">
-      <template slot-scope="scope">
-        <span>{{scope.row.apiId}}</span>
-      </template>
-     </el-table-column>
       <el-table-column width="350px" align="center" label="接口名称">
         <template slot-scope="scope">
           <span>{{scope.row.apiName}}</span>
@@ -50,7 +45,7 @@
         </template>
       </el-table-column>
     </el-table>
-    <div v-show="listLoading" class="pagination-container">
+    <div v-show="!listLoading" class="pagination-container">
       <el-pagination @size-change="handleSizeChange" @current-change="handleCurrentChange"
                      :current-page.sync="listQuery.page"
                      :page-sizes="[10,20,30,50]" :page-size="listQuery.limit"
@@ -84,19 +79,15 @@
     },
     methods: {
       getList() {
-        this.listLoading = false;
+        this.listLoading = true;
         getAdminApiBaseInfo(this.listQuery)
           .then(response => {
             const status = response.status;
             if (status === 200) {
-              this.list = response.data.rows;
-              this.list.forEach((item,index)=>{
-                item.index = (this.listQuery.page-1)*this.listQuery.limit+index+1
-              });
-              this.total = response.data.total;
-              this.listLoading = true;
-            } else if (status === 20500) {
               this.listLoading = false;
+              this.list = response.data.rows;
+              this.total = response.data.total;
+            } else if (status === 20500) {
               this.$message({
                 message: response.message,
                 type: 'error',

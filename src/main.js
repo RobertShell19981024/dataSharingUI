@@ -15,18 +15,7 @@ import i18n from './lang' // Internationalization
 import './icons' // icon
 import './errorLog'// error log
 import './permission' // permission control
-// import './mock' // simulation data
-// import $ from 'jquery' ;
 import moment from 'moment'
-// import './assets/css/reset.css';
-// import './assets/css/styles.css';
-// import './assets/js/jquery.min.js';
-// import './assets/js/jquery.ui.widget.min.js';
-// import './assets/js/jquery.marcopolo.min.js';
-// import './assets/js/jquery.manifest.js';
-// import 'bootstrap/dist/css/bootstrap.min.css'
-// import 'bootstrap/dist/js/bootstrap.min'
-
 import * as filters from './filters' // global filters
 Vue.prototype.$moment = moment;//赋值使用
 moment.locale('zh-cn');//需要汉化

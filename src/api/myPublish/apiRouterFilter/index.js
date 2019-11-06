@@ -16,7 +16,7 @@ export function addObj(obj) {
   })
 }
 
-export function getObj(id) {
+export function getOneApiRouterFilter(id) {
   return request({
     url: '/api/apiRouterFilter/getOneApiRouterFilter/' + id,
     method: 'get'
