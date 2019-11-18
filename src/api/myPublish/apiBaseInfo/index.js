@@ -51,3 +51,17 @@ export function getAdminApiBaseInfo(query) {
     params: query
   })
 }
+export function getRequestAllApiBaseInfo() {
+  return request({
+    url: '/api/apiBaseInfo/getRequestAllApiBaseInfo',
+    method: 'get'
+  })
+}
+export function requestHost(obj) {
+  return request({
+    url: '/api/apiBaseInfo/requestHost',
+    method: 'post',
+    data: obj
+  })
+}
+

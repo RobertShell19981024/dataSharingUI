@@ -57,6 +57,8 @@
       <el-table-column fixed="right" align="center" label="操作" width="400">
         <template slot-scope="scope">
           <el-button size="small" type="success" @click="handleUpdate(scope.row)">编辑</el-button>
+          <el-button size="small" type="success"><router-link :to="{path:'/myInterface/onlineTest',query: {apiId:scope.row.apiId,path:scope.row.path}}">设置接口说明</router-link></el-button>
+          <el-button size="small" type="success" @click="handleAuthorize(scope.row)">授权</el-button>
           <el-button size="small" type="primary" @click="handleKey(scope.row)">密钥查看</el-button>
           <el-button size="small" type="primary" @click="handleRoute(scope.row)">路由设置</el-button>
           <el-button size="small" type="danger" @click="handleDelete(scope.row)">删除</el-button>
@@ -286,6 +288,7 @@
         <el-button @click="keyCancel('form')">取 消</el-button>
       </div>
     </el-dialog>
+
     <el-dialog title="" :visible.sync="timeVisible">
       <h3>访问时间控制<i class="el-icon-circle-plus-outline" style="margin-left: 100px;font-size: 30px"
                    @click="handleTimeCreate"></i></h3>
@@ -617,6 +620,12 @@
         <el-button type="primary" @click="routeUpdate()">确 定</el-button>
       </div>
     </el-dialog>
+
+    <el-dialog title="授权" :visible.sync="dialogAuthorizeVisible">
+      <group-authorize @close="closeAuthorizeDialog" @closeAuthorizeDialog="closeAuthorizeDialog" :groupId="currentId"
+                       ref="Authorize"
+      ></group-authorize>
+    </el-dialog>
   </div>
 </template>
 <script>
@@ -687,7 +696,10 @@
     updateApiCitysharedConfig
   } from '@/api/myPublish/apiCitysharedConfig/index';
 
+  import GroupAuthorize from "./component/groupAuthorize";
+
   export default {
+    components: {GroupAuthorize},
     mounted() {
       this.getList();
       this.allUsers();
@@ -814,7 +826,7 @@
         dialogSqCityConfigTitle: '',
         isShow: false,
         api_id: undefined,
-        showIdArrs: ['1h5OiYUc', '1h5OiYUo', '1h5OiYUs', '1h5O7YUs', '5d5frts4'],
+        showIdArrs: ['1h5OiYUc', '1h5OiYUo', '1h5OiYUs', '1h5O7YUs', '5d5frts4','jghsfvvgg'],
         value2: '00:00:00',
         timeVisible: false,
         timeIndexVisible: false,
@@ -827,6 +839,7 @@
         sqCityApiConfigVisible: false,
         sqCityApiConfigIndexVisible: false,
         routeVisible: false,
+        dialogAuthorizeVisible:false,
         timeList: null,
         whiteListList: null,
         jsonFilterList: null,
@@ -1060,7 +1073,8 @@
         createUpdateLimitId: '',
         createUpdateSqCityConfigId: '',
         filterExplainDes: '',
-        index:0
+        index:0,
+        currentId:''
       }
     },
     methods: {
@@ -1280,6 +1294,14 @@
           }
         });
       },
+      handleAuthorize(row){
+        this.dialogAuthorizeVisible = true;
+        this.currentId = row.apiId;
+        if (this.$refs.Authorize !== undefined) {
+          this.$refs.Authorize.groupId = this.currentId;
+          this.$refs.Authorize.initUsers();
+        }
+      },
       resetTemp() {
         this.form = {
           apiName: undefined,
@@ -1462,6 +1484,14 @@
           }
           //宿迁市本级接口配置
         } else if (id === '5d5frts4') {
+          this.sqCityApiConfigVisible = true;
+          if (this.filterConfigStatus == 'create') {
+            this.sqCityConfigList = JSON.parse(window.localStorage.getItem("sqCityConfigList")) || [];
+          } else {
+            this.getSqApiConfigList(this.curr);
+          }
+          //代理省级过滤器
+        }else if (id === 'jghsfvvgg') {
           this.sqCityApiConfigVisible = true;
           if (this.filterConfigStatus == 'create') {
             this.sqCityConfigList = JSON.parse(window.localStorage.getItem("sqCityConfigList")) || [];
@@ -2380,6 +2410,9 @@
         this.keyArr = [];
         this.keyVisible = false;
       },
+      closeAuthorizeDialog(){
+        this.dialogAuthorizeVisible = false;
+      }
     }
   }
 </script>

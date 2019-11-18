@@ -15,7 +15,8 @@
   </el-col>
   <el-col :span="8" style='margin-top:15px;'>
     <el-input placeholder="输入关键字进行过滤" v-model="filterText"> </el-input>
-    <el-tree class="filter-tree" :data="treeData" node-key="id" highlight-current :props="defaultProps" :filter-node-method="filterNode"   :expand-on-click-node="false" ref="groupTree" @node-click="getNodeData" default-expand-all> </el-tree>
+    <el-tree class="filter-tree" :data="treeData" node-key="id" highlight-current :props="defaultProps" :filter-node-method="filterNode"
+             :expand-on-click-node="false" ref="groupTree" @node-click="getNodeData" default-expand-all> </el-tree>
   </el-col>
   <el-col :span="16" style='margin-top:15px;'>
     <el-form :label-position="labelPosition" :rules="rules" label-width="80px" :model="form" ref="form">

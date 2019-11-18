@@ -17,6 +17,7 @@ import './errorLog'// error log
 import './permission' // permission control
 import moment from 'moment'
 import * as filters from './filters' // global filters
+import jsonView from 'vue-json-viewer'
 Vue.prototype.$moment = moment;//赋值使用
 moment.locale('zh-cn');//需要汉化
 Vue.use(Element, {
@@ -25,7 +26,7 @@ Vue.use(Element, {
   i18n: (key, value) => i18n.t(key, value)
 });
 import VueClipboard from 'vue-clipboard2'
-
+Vue.use(jsonView)
 Vue.use(VueClipboard);
 // register global utility filters.
 Object.keys(filters).forEach(key => {

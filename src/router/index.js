@@ -391,6 +391,17 @@ export const asyncRouterMap = [{
         component: _import('myInterface/nationalInterfaceConfig/index'),
         name: '国家级接口访问配置',
         authority: 'nationalInterfaceConfig'
+      },
+      {
+        path: 'onlineTest',
+        component: _import('myInterface/onlineTest/index'),
+        name: '在线测试',
+        authority: 'onlineTest'
+      },{
+        path: 'requestInterface',
+        component: _import('myInterface/requestInterface/index'),
+        name: '请求接口',
+        authority: 'requestInterface'
       }]
   }, {
     path: '/interfaceManage',
