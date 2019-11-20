@@ -8,8 +8,8 @@
             <el-header style="font-size: 15px;height: auto">
               <h4>请求头字段说明</h4>
               <P>
-                <el-button type="primary" @click.prevent="addHeaderRow()">添加</el-button>
-                <el-button type="danger" @click.prevent="delHeaderData()">删除</el-button>
+                <el-button type="primary" @click.prevent="addHeaderRow()" v-show="isEdit">添加</el-button>
+                <el-button type="danger" @click.prevent="delHeaderData()" v-show="isEdit">删除</el-button>
                 <el-button type="success" @click.prevent="HeaderInstance()">请求头样例</el-button>
               </P>
               <div class="table">
@@ -24,17 +24,17 @@
                   <el-table-column type="selection" width="45" align="center"></el-table-column>
                   <el-table-column label="字段" align="center">
                     <template slot-scope="scope">
-                      <el-input v-model="scope.row.field"></el-input>
+                      <el-input v-model="scope.row.field" disabled=!isEdit></el-input>
                     </template>
                   </el-table-column>
                   <el-table-column label="名称">
                     <template slot-scope="scope">
-                      <el-input v-model="scope.row.name"></el-input>
+                      <el-input v-model="scope.row.name" disabled=!isEdit></el-input>
                     </template>
                   </el-table-column>
                   <el-table-column label="说明">
                     <template slot-scope="scope">
-                      <el-input v-model="scope.row.explain"></el-input>
+                      <el-input v-model="scope.row.explain" disabled=!isEdit></el-input>
                     </template>
                   </el-table-column>
                 </el-table>
@@ -43,8 +43,8 @@
             <el-main style="font-size: 15px;height: auto">
               <h4>请求体字段说明</h4>
               <P>
-                <el-button type="primary" @click.prevent="addBodyRow()">添加</el-button>
-                <el-button type="danger" @click.prevent="delBodyData()">删除</el-button>
+                <el-button type="primary" @click.prevent="addBodyRow()" v-show="isEdit">添加</el-button>
+                <el-button type="danger" @click.prevent="delBodyData()" v-show="isEdit">删除</el-button>
                 <el-button type="success" @click.prevent="BodyInstance()">请求体样例</el-button>
               </P>
               <div class="table">
@@ -59,17 +59,17 @@
                   <el-table-column type="selection" width="45" align="center"></el-table-column>
                   <el-table-column label="字段" align="center">
                     <template slot-scope="scope">
-                      <el-input v-model="scope.row.field"></el-input>
+                      <el-input v-model="scope.row.field" disabled=!isEdit></el-input>
                     </template>
                   </el-table-column>
                   <el-table-column label="名称">
                     <template slot-scope="scope">
-                      <el-input v-model="scope.row.name"></el-input>
+                      <el-input v-model="scope.row.name" disabled=!isEdit></el-input>
                     </template>
                   </el-table-column>
                   <el-table-column label="说明">
                     <template slot-scope="scope">
-                      <el-input v-model="scope.row.explain"></el-input>
+                      <el-input v-model="scope.row.explain" disabled=!isEdit></el-input>
                     </template>
                   </el-table-column>
                 </el-table>
@@ -78,8 +78,8 @@
             <el-footer style="font-size: 15px;height: auto;margin-bottom: 20px">
               <h4>响应字段说明</h4>
               <P>
-                <el-button type="primary" @click.prevent="addResponseRow()">添加</el-button>
-                <el-button type="danger" @click.prevent="delResponseData()">删除</el-button>
+                <el-button type="primary" @click.prevent="addResponseRow()" v-show=isEdit>添加</el-button>
+                <el-button type="danger" @click.prevent="delResponseData()" v-show=isEdit>删除</el-button>
                 <el-button type="success" @click.prevent="ResponseInstance()">响应样例</el-button>
               </P>
               <div class="table">
@@ -94,24 +94,24 @@
                   <el-table-column type="selection" width="45" align="center"></el-table-column>
                   <el-table-column label="字段" align="center">
                     <template slot-scope="scope">
-                      <el-input v-model="scope.row.field"></el-input>
+                      <el-input v-model="scope.row.field" disabled=!isEdit></el-input>
                     </template>
                   </el-table-column>
                   <el-table-column label="名称">
                     <template slot-scope="scope">
-                      <el-input v-model="scope.row.name"></el-input>
+                      <el-input v-model="scope.row.name" disabled=!isEdit></el-input>
                     </template>
                   </el-table-column>
                   <el-table-column label="说明">
                     <template slot-scope="scope">
-                      <el-input v-model="scope.row.explain"></el-input>
+                      <el-input v-model="scope.row.explain" disabled=!isEdit></el-input>
                     </template>
                   </el-table-column>
                 </el-table>
               </div>
             </el-footer>
             <div style="text-align: center;margin-bottom: 15px">
-              <el-button type="primary" @click.prevent="interfaceEdit()">编辑</el-button>
+              <el-button type="primary" @click.prevent="interfaceEdit()" v-show="isEdit">编辑</el-button>
             </div>
           </el-container>
         </div>
@@ -195,7 +195,8 @@
 
             <el-main style="font-size: 15px;height: auto">
               <h4>响应</h4>
-              <el-input type="textarea" style="width: 60%;"></el-input>
+              <!--<el-input type="textarea" style="width: 60%;" v-model="testResponseTextArea"></el-input>-->
+              <json-viewer :value="testResponseTextArea"></json-viewer>
             </el-main>
             <div style="text-align: center;margin-bottom: 15px">
               <el-button type="primary" @click.prevent="startTest()">开始测试</el-button>
@@ -231,12 +232,13 @@
         headerTextArea: {},
         bodyTextArea: {},
         responseTextArea: {},
+        testResponseTextArea: {},
         apiOnlineTest: {
           api_id: undefined,
           path: undefined,
-          method: undefined,
-          sendbody: undefined,
-          sendheard: undefined
+          method: "POST",
+          sendbody: "{}",
+          sendheard: "{}"
         },
         methodOptions: [
           {
@@ -251,17 +253,19 @@
         isHeaderAdd: true,
         isBodyAdd: true,
         isResponseAdd: true,
-        activeName: 'first'
+        activeName: 'first',
+        isEdit: true
       }
     },
     mounted() {
+      this.isEdit = this.$route.query.isEdit;
       this.apiId = this.$route.query.apiId;
       this.apiOnlineTest.path = this.$route.query.path
       if (typeof this.apiId !== "undefined") {
         getOneApiBaseDescriptions(this.apiId).then(response => {
           response = response.apiBaseDescriptions[0];
           this.tableHeaderData = JSON.parse(response.requsetHeardField);
-          this.headerTextArea = response.requsetHeardExp;
+          this.headerTextArea = JSON.parse(response.requsetHeardExp);
           this.tableBodyData = JSON.parse(response.requestBodyField);
           this.bodyTextArea = response.requsetBodyExp;
           this.tableResponseData = JSON.parse(response.respBodyField);
@@ -354,15 +358,16 @@
       },
       interfaceEdit() {
         if (typeof this.apiId !== 'undefined') {
-          const obj = {};
-          obj.apiId = this.apiId;
-          obj.requsetHeardField = JSON.stringify(this.tableHeaderData);
-          obj.requsetHeardExp = this.headerTextArea;
-          obj.requestBodyField = JSON.stringify(this.tableBodyData);
-          obj.requsetBodyExp = this.bodyTextArea;
-          obj.respBodyField = JSON.stringify(this.tableResponseData);
-          obj.respBodyExp = this.responseTextArea;
-          updateOneApiBaseDescriptions(this.apiId, obj).then(response => {
+          const apiBaseDescriptions = {};
+          apiBaseDescriptions.apiId = this.apiId;
+          apiBaseDescriptions.requsetHeardField = JSON.stringify(this.tableHeaderData);
+          apiBaseDescriptions.requsetHeardExp = JSON.stringify(this.headerTextArea);
+          apiBaseDescriptions.requestBodyField = JSON.stringify(this.tableBodyData);
+          apiBaseDescriptions.requsetBodyExp = JSON.stringify(this.bodyTextArea);
+          apiBaseDescriptions.respBodyField = JSON.stringify(this.tableResponseData);
+          apiBaseDescriptions.respBodyExp = JSON.stringify(this.responseTextArea);
+          console.log(apiBaseDescriptions);
+          updateOneApiBaseDescriptions(this.apiId, apiBaseDescriptions).then(response => {
             response = response.status;
             if (response === 200) {
               this.$message({
@@ -380,8 +385,10 @@
         if (typeof this.apiOnlineTest.path !== "undefined") {
           this.apiOnlineTest.api_id = this.apiId;
           console.log(this.apiOnlineTest);
-          requestHost(this.apiOnlineTest).then(() => {
-
+          requestHost(this.apiOnlineTest).then(response => {
+            // alert(typeof response);
+            this.testResponseTextArea = JSON.parse(JSON.stringify(response));
+            // alert(typeof this.testResponseTextArea);
           })
         } else {
           this.$message.error('接口后缀地址不能为空');

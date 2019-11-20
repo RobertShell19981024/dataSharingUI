@@ -57,7 +57,12 @@
       <el-table-column fixed="right" align="center" label="操作" width="400">
         <template slot-scope="scope">
           <el-button size="small" type="success" @click="handleUpdate(scope.row)">编辑</el-button>
-          <el-button size="small" type="success"><router-link :to="{path:'/myInterface/onlineTest',query: {apiId:scope.row.apiId,path:scope.row.path}}">设置接口说明</router-link></el-button>
+          <el-button size="small" type="success">
+            <router-link
+              :to="{path:'/myInterface/onlineTest',query: {apiId:scope.row.apiId,path:scope.row.path,isEdit:true}}">
+              设置接口说明
+            </router-link>
+          </el-button>
           <el-button size="small" type="success" @click="handleAuthorize(scope.row)">授权</el-button>
           <el-button size="small" type="primary" @click="handleKey(scope.row)">密钥查看</el-button>
           <el-button size="small" type="primary" @click="handleRoute(scope.row)">路由设置</el-button>
@@ -826,7 +831,7 @@
         dialogSqCityConfigTitle: '',
         isShow: false,
         api_id: undefined,
-        showIdArrs: ['1h5OiYUc', '1h5OiYUo', '1h5OiYUs', '1h5O7YUs', '5d5frts4','jghsfvvgg'],
+        showIdArrs: ['1h5OiYUc', '1h5OiYUo', '1h5OiYUs', '1h5O7YUs', '5d5frts4', 'jghsfvvgg'],
         value2: '00:00:00',
         timeVisible: false,
         timeIndexVisible: false,
@@ -839,7 +844,7 @@
         sqCityApiConfigVisible: false,
         sqCityApiConfigIndexVisible: false,
         routeVisible: false,
-        dialogAuthorizeVisible:false,
+        dialogAuthorizeVisible: false,
         timeList: null,
         whiteListList: null,
         jsonFilterList: null,
@@ -1073,8 +1078,8 @@
         createUpdateLimitId: '',
         createUpdateSqCityConfigId: '',
         filterExplainDes: '',
-        index:0,
-        currentId:''
+        index: 0,
+        currentId: ''
       }
     },
     methods: {
@@ -1133,8 +1138,8 @@
             const status = response.status;
             if (status === 200) {
               this.list = response.data.rows;
-              this.list.forEach((item,index)=>{
-                item.index = (this.listQuery.page-1)*this.listQuery.limit+index+1
+              this.list.forEach((item, index) => {
+                item.index = (this.listQuery.page - 1) * this.listQuery.limit + index + 1
               });
               this.total = response.data.total;
               this.listLoading = true;
@@ -1294,7 +1299,7 @@
           }
         });
       },
-      handleAuthorize(row){
+      handleAuthorize(row) {
         this.dialogAuthorizeVisible = true;
         this.currentId = row.apiId;
         if (this.$refs.Authorize !== undefined) {
@@ -1491,7 +1496,7 @@
             this.getSqApiConfigList(this.curr);
           }
           //代理省级过滤器
-        }else if (id === 'jghsfvvgg') {
+        } else if (id === 'jghsfvvgg') {
           this.sqCityApiConfigVisible = true;
           if (this.filterConfigStatus == 'create') {
             this.sqCityConfigList = JSON.parse(window.localStorage.getItem("sqCityConfigList")) || [];
@@ -2410,7 +2415,7 @@
         this.keyArr = [];
         this.keyVisible = false;
       },
-      closeAuthorizeDialog(){
+      closeAuthorizeDialog() {
         this.dialogAuthorizeVisible = false;
       }
     }
